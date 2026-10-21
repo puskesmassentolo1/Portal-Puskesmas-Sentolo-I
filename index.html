@@ -37,7 +37,7 @@
                         <span class="text-xs px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-500 border border-amber-500/30 font-semibold hidden sm:inline">Mode Admin Active</span>
                         
                         <!-- Tombol Tambah Kegiatan -->
-                        <button @click="showManager = true" class="flex items-center space-x-1 px-3 py-2 rounded-xl text-xs sm:text-sm font-medium bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm transition active:scale-95">
+                        <button @click="openAddModal()" class="flex items-center space-x-1 px-3 py-2 rounded-xl text-xs sm:text-sm font-medium bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm transition active:scale-95">
                             <span>+ Tambah Kegiatan</span>
                         </button>
 
@@ -157,10 +157,16 @@
                             Akses Layanan ↗
                         </a>
 
+                        <!-- TOMBOL EDIT & HAPUS (MODE ADMIN) -->
                         <template x-if="isAdmin">
-                            <button @click="deleteLink(item.id)" title="Hapus Kegiatan" class="p-3 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-xl transition">
-                                🗑️
-                            </button>
+                            <div class="flex items-center space-x-1">
+                                <button @click="openEditModal(item)" title="Edit Kegiatan" class="p-3 text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/30 rounded-xl transition">
+                                    ✏️
+                                </button>
+                                <button @click="deleteLink(item.id)" title="Hapus Kegiatan" class="p-3 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-xl transition">
+                                    🗑️
+                                </button>
+                            </div>
                         </template>
                     </div>
                 </div>
@@ -208,7 +214,10 @@
                                     </a>
                                 </td>
                                 <template x-if="isAdmin">
-                                    <td class="px-6 py-4 text-center whitespace-nowrap">
+                                    <td class="px-6 py-4 text-center whitespace-nowrap space-x-1">
+                                        <button @click="openEditModal(item)" title="Edit Kegiatan" class="p-1.5 text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/30 rounded-lg transition">
+                                            ✏️
+                                        </button>
                                         <button @click="deleteLink(item.id)" title="Hapus Kegiatan" class="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition">
                                             🗑️
                                         </button>
@@ -248,9 +257,14 @@
                             Kunjungi ↗
                         </a>
                         <template x-if="isAdmin">
-                            <button @click="deleteLink(item.id)" title="Hapus Kegiatan" class="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-xl transition">
-                                🗑️
-                            </button>
+                            <div class="flex items-center space-x-1">
+                                <button @click="openEditModal(item)" title="Edit Kegiatan" class="p-2 text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/30 rounded-xl transition">
+                                    ✏️
+                                </button>
+                                <button @click="deleteLink(item.id)" title="Hapus Kegiatan" class="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-xl transition">
+                                    🗑️
+                                </button>
+                            </div>
                         </template>
                     </div>
                 </div>
@@ -390,19 +404,19 @@
         </div>
     </div>
 
-    <!-- MODAL POPUP: TAMBAH KEGIATAN BARU -->
+    <!-- MODAL POPUP: TAMBAH / EDIT KEGIATAN -->
     <div x-show="showManager" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" style="display: none;">
         <div class="bg-white dark:bg-gray-900 rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-gray-200 dark:border-gray-800 space-y-4">
-            <h3 class="text-xl font-bold text-gray-800 dark:text-white pb-2 border-b border-gray-100 dark:border-gray-800">Tambah Kegiatan Baru</h3>
-            <form @submit.prevent="addLink()" class="space-y-3">
+            <h3 class="text-xl font-bold text-gray-800 dark:text-white pb-2 border-b border-gray-100 dark:border-gray-800" x-text="isEditing ? '✏️ Edit Kegiatan' : '+ Tambah Kegiatan Baru'"></h3>
+            <form @submit.prevent="saveLink()" class="space-y-3">
                 <div>
                     <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">Judul Kegiatan</label>
-                    <input type="text" x-model="newForm.title" required placeholder="Judul..." class="w-full p-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-100 text-sm">
+                    <input type="text" x-model="linkForm.title" required placeholder="Judul..." class="w-full p-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-100 text-sm">
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">Kategori</label>
-                        <select x-model="newForm.category" class="w-full p-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-100 text-sm">
+                        <select x-model="linkForm.category" class="w-full p-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-100 text-sm">
                             <template x-for="cat in categories" :key="cat">
                                 <option :value="cat" x-text="cat"></option>
                             </template>
@@ -410,7 +424,7 @@
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">Ikon Emoji (Opsional)</label>
-                        <input type="text" x-model="newForm.icon" placeholder="📋, 🏥..." class="w-full p-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-100 text-sm">
+                        <input type="text" x-model="linkForm.icon" placeholder="📋, 🏥..." class="w-full p-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-100 text-sm">
                     </div>
                 </div>
 
@@ -418,10 +432,10 @@
                     <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">🖼️ Foto Gambar Kotak Kartu (Opsional)</label>
                     <div class="flex items-center space-x-3 mb-2">
                         <div class="w-14 h-14 rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-center">
-                            <template x-if="newForm.image">
-                                <img :src="newForm.image" class="w-full h-full object-cover">
+                            <template x-if="linkForm.image">
+                                <img :src="linkForm.image" class="w-full h-full object-cover">
                             </template>
-                            <template x-if="!newForm.image">
+                            <template x-if="!linkForm.image">
                                 <span class="text-xs text-gray-400">Preview</span>
                             </template>
                         </div>
@@ -431,15 +445,15 @@
 
                 <div>
                     <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">Deskripsi Singkat</label>
-                    <textarea x-model="newForm.description" required placeholder="Deskripsi..." class="w-full p-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-100 text-sm h-16"></textarea>
+                    <textarea x-model="linkForm.description" required placeholder="Deskripsi..." class="w-full p-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-100 text-sm h-16"></textarea>
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">URL / Link Tujuan</label>
-                    <input type="url" x-model="newForm.url" required placeholder="https://..." class="w-full p-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-100 text-sm">
+                    <input type="url" x-model="linkForm.url" required placeholder="https://..." class="w-full p-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-100 text-sm">
                 </div>
                 <div class="pt-2 flex space-x-2">
                     <button type="button" @click="showManager = false" class="w-1/2 py-2.5 rounded-xl text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-800">Batal</button>
-                    <button type="submit" class="w-1/2 py-2.5 rounded-xl text-white bg-emerald-600 hover:bg-emerald-700 font-medium">Simpan Kegiatan</button>
+                    <button type="submit" class="w-1/2 py-2.5 rounded-xl text-white bg-emerald-600 hover:bg-emerald-700 font-medium" x-text="isEditing ? 'Simpan Perubahan' : 'Simpan Kegiatan'"></button>
                 </div>
             </form>
         </div>
@@ -454,6 +468,9 @@
                 showCustomizer: false,
                 showManager: false,
                 showCategoryModal: false,
+                isEditing: false, // Menandakan mode Tambah atau Edit
+                editingId: null,
+
                 inputPin: '',
                 adminPin: 'Sentolo1',
                 
@@ -465,7 +482,7 @@
                 heroImageUrl: '',
 
                 newCategoryName: '',
-                newForm: { title: '', category: '', description: '', icon: '📋', image: '', url: '' },
+                linkForm: { title: '', category: '', description: '', icon: '📋', image: '', url: '' },
                 
                 config: {
                     appName: 'UPT Puskesmas Sentolo I',
@@ -614,7 +631,7 @@
                     const file = event.target.files[0];
                     if (file) {
                         const reader = new FileReader();
-                        reader.onload = (e) => { this.newForm.image = e.target.result; };
+                        reader.onload = (e) => { this.linkForm.image = e.target.result; };
                         reader.readAsDataURL(file);
                     }
                 },
@@ -623,19 +640,60 @@
                     localStorage.setItem('pkm_config', JSON.stringify(this.config));
                 },
 
-                addLink() {
-                    const newItem = {
-                        id: Date.now(),
-                        title: this.newForm.title,
-                        category: this.newForm.category || (this.categories[0] || 'Umum'),
-                        description: this.newForm.description,
-                        icon: this.newForm.icon || '📋',
-                        image: this.newForm.image || '',
-                        url: this.newForm.url
+                // MEMBUKA MODAL UNTUK TAMBAH BARU
+                openAddModal() {
+                    this.isEditing = false;
+                    this.editingId = null;
+                    this.linkForm = { title: '', category: this.categories[0] || '', description: '', icon: '📋', image: '', url: '' };
+                    this.showManager = true;
+                },
+
+                // MEMBUKA MODAL UNTUK EDIT DATA YANG ADA
+                openEditModal(item) {
+                    this.isEditing = true;
+                    this.editingId = item.id;
+                    this.linkForm = { 
+                        title: item.title, 
+                        category: item.category, 
+                        description: item.description, 
+                        icon: item.icon || '📋', 
+                        image: item.image || '', 
+                        url: item.url 
                     };
-                    this.links.unshift(newItem);
+                    this.showManager = true;
+                },
+
+                // MENYIMPAN DATA (TAMBAH / EDIT)
+                saveLink() {
+                    if (this.isEditing && this.editingId) {
+                        // Proses Update Data
+                        const index = this.links.findIndex(item => item.id === this.editingId);
+                        if (index !== -1) {
+                            this.links[index] = {
+                                id: this.editingId,
+                                title: this.linkForm.title,
+                                category: this.linkForm.category,
+                                description: this.linkForm.description,
+                                icon: this.linkForm.icon || '📋',
+                                image: this.linkForm.image || '',
+                                url: this.linkForm.url
+                            };
+                        }
+                    } else {
+                        // Proses Tambah Data Baru
+                        const newItem = {
+                            id: Date.now(),
+                            title: this.linkForm.title,
+                            category: this.linkForm.category || (this.categories[0] || 'Umum'),
+                            description: this.linkForm.description,
+                            icon: this.linkForm.icon || '📋',
+                            image: this.linkForm.image || '',
+                            url: this.linkForm.url
+                        };
+                        this.links.unshift(newItem);
+                    }
+
                     this.saveLinks();
-                    this.newForm = { title: '', category: this.categories[0] || '', description: '', icon: '📋', image: '', url: '' };
                     this.showManager = false;
                 },
 
@@ -684,7 +742,7 @@
                         this.categories = ['Kluster 1 & Manajemen', 'Kluster 2 (Ibu & Anak)', 'Kluster 3 (Usia Produktif)', 'Kluster 4 (Lansia & PTM)', 'Surveilans & Umum'];
                         this.saveCategories();
                     }
-                    this.newForm.category = this.categories[0] || '';
+                    this.linkForm.category = this.categories[0] || '';
 
                     try {
                         const savedLinks = localStorage.getItem('pkm_links_data');
