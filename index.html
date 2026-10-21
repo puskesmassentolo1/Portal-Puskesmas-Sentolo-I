@@ -4,60 +4,48 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Portal Layanan & Informasi Puskesmas</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <!-- Alpine.js -->
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- Tailwind CSS CDN Stabil -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Alpine.js CDN Stabil -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.5/dist/cdn.min.js"></script>
     <!-- Google Fonts -->
-    <link id="dynamic-font-link" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         [x-cloak] { display: none !important; }
-        body { font-family: var(--app-font, 'Inter', sans-serif); }
+        body { font-family: 'Inter', sans-serif; }
     </style>
 </head>
-<body class="min-h-screen flex flex-col transition-colors duration-300" 
-      :style="`--app-font: '${fontFamily}', sans-serif;`"
-      x-data="puskesmasApp()" 
-      x-cloak
-      :class="currentTheme.bgClass">
+<body class="min-h-screen flex flex-col bg-slate-900 text-slate-100" x-data="puskesmasApp()" x-cloak>
 
     <!-- HEADER / NAVBAR -->
-    <header :class="currentTheme.headerBg" class="shadow-md sticky top-0 z-50 backdrop-blur-md bg-opacity-90 transition-colors duration-300">
+    <header class="bg-slate-800/90 shadow-md sticky top-0 z-50 backdrop-blur-md border-b border-slate-700">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
             <div class="flex items-center space-x-3">
-                <div class="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg" :class="currentTheme.accentBg" x-text="config.appLogoText"></div>
+                <div class="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg bg-emerald-600" x-text="config.appLogoText"></div>
                 <div>
-                    <h1 class="font-bold text-lg sm:text-xl leading-tight" :class="currentTheme.headerText" x-text="config.appName"></h1>
-                    <p class="text-xs opacity-80" :class="currentTheme.headerText" x-text="config.appSubtitle"></p>
+                    <h1 class="font-bold text-lg sm:text-xl leading-tight text-white" x-text="config.appName"></h1>
+                    <p class="text-xs opacity-80 text-gray-300" x-text="config.appSubtitle"></p>
                 </div>
             </div>
             
             <div class="flex items-center space-x-2">
-                <!-- MENU ADMIN (MUNCUL JIKA SUDAH LOGIN ADMIN) -->
                 <template x-if="isAdmin">
                     <div class="flex items-center space-x-2">
-                        <span class="text-xs px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-500 border border-amber-500/30 font-semibold hidden sm:inline">Mode Admin</span>
+                        <span class="text-xs px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-400 border border-amber-500/30 font-semibold hidden sm:inline">Mode Admin</span>
                         
-                        <button @click="showManager = true" class="flex items-center space-x-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-medium bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm transition active:scale-95">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                            <span>Tambah Kegiatan</span>
+                        <button @click="showManager = true" class="flex items-center space-x-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-medium bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm transition">
+                            <span>+ Tambah Kegiatan</span>
                         </button>
 
-                        <button @click="showCustomizer = true" class="p-2 sm:px-3 sm:py-2 rounded-xl text-xs sm:text-sm font-medium shadow-sm transition active:scale-95" :class="currentTheme.buttonClass" title="Pengaturan Tema">
-                            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                        </button>
-
-                        <button @click="logoutAdmin()" class="p-2 rounded-xl text-xs bg-red-500/10 text-red-500 hover:bg-red-500/20 transition" title="Keluar Admin">
-                            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                        <button @click="logoutAdmin()" class="px-3 py-2 rounded-xl text-xs bg-red-500/20 text-red-400 hover:bg-red-500/30 transition">
+                            Keluar Admin
                         </button>
                     </div>
                 </template>
 
-                <!-- TOMBOL MASUK ADMIN (JIKA BELUM LOGIN) -->
                 <template x-if="!isAdmin">
-                    <button @click="showLoginModal = true" class="flex items-center space-x-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-medium bg-gray-800 text-gray-200 hover:bg-gray-700 shadow-sm transition active:scale-95">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-                        <span>Login Admin</span>
+                    <button @click="showLoginModal = true" class="flex items-center space-x-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-medium bg-slate-700 text-gray-200 hover:bg-slate-600 transition">
+                        <span>🔑 Login Admin</span>
                     </button>
                 </template>
             </div>
@@ -67,43 +55,35 @@
     <!-- KONTEN UTAMA -->
     <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
-        <!-- HERO BANNER DENGAN FOTO UTAMA -->
-        <section class="rounded-3xl p-8 mb-10 shadow-2xl relative overflow-hidden transition-all duration-300 min-h-[240px] flex items-center" 
-                 :class="heroImageUrl ? '' : currentTheme.heroBg"
-                 :style="heroImageUrl ? `background: linear-gradient(rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.65)), url('${heroImageUrl}') center/cover no-repeat;` : ''">
+        <!-- HERO BANNER -->
+        <section class="rounded-3xl p-8 mb-10 shadow-2xl relative overflow-hidden transition-all duration-300 min-h-[220px] flex items-center bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-700">
             <div class="relative z-10 max-w-3xl">
                 <span class="inline-block px-3 py-1 rounded-full text-xs font-semibold mb-3 bg-white/20 backdrop-blur-md text-white" x-text="config.heroBadge"></span>
                 <h2 class="text-3xl sm:text-4xl font-extrabold text-white mb-4 leading-tight" x-text="config.heroTitle"></h2>
                 <p class="text-white/90 text-sm sm:text-base leading-relaxed max-w-2xl" x-text="config.heroDescription"></p>
             </div>
-            <template x-if="!heroImageUrl">
-                <div class="absolute -right-10 -bottom-10 w-72 h-72 rounded-full bg-white/10 blur-3xl pointer-events-none"></div>
-            </template>
         </section>
 
         <!-- PENCARIAN & FILTER KATEGORI -->
         <div class="mb-8 flex flex-col md:flex-row justify-between items-center gap-4">
             <div class="w-full md:w-96 relative">
-                <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                </span>
-                <input type="text" x-model="searchQuery" placeholder="Cari kegiatan atau layanan..." class="w-full pl-10 pr-4 py-3 rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-sm transition">
+                <input type="text" x-model="searchQuery" placeholder="🔍 Cari kegiatan atau layanan..." class="w-full px-4 py-3 rounded-2xl border border-slate-700 bg-slate-800 text-gray-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-sm">
             </div>
             <div class="flex items-center space-x-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0">
-                <button @click="selectedCategory = 'Semua'" :class="selectedCategory === 'Semua' ? currentTheme.accentBg + ' text-white' : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300'" class="px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition whitespace-nowrap">Semua</button>
+                <button @click="selectedCategory = 'Semua'" :class="selectedCategory === 'Semua' ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-gray-300 hover:bg-slate-700'" class="px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition whitespace-nowrap">Semua</button>
                 <template x-for="cat in categories" :key="cat">
-                    <button @click="selectedCategory = cat" :class="selectedCategory === cat ? currentTheme.accentBg + ' text-white' : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300'" class="px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition whitespace-nowrap" x-text="cat"></button>
+                    <button @click="selectedCategory = cat" :class="selectedCategory === cat ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-gray-300 hover:bg-slate-700'" class="px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition whitespace-nowrap" x-text="cat"></button>
                 </template>
             </div>
         </div>
 
-        <!-- DAFTAR KARTU KEGIATAN & LINK -->
+        <!-- DAFTAR KARTU KEGIATAN -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             <template x-for="item in filteredLinks" :key="item.id">
-                <div class="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-md hover:shadow-2xl transition-all duration-300 border border-gray-100 dark:border-gray-700 flex flex-col justify-between group relative overflow-hidden">
+                <div class="bg-slate-800 rounded-3xl p-6 shadow-md hover:shadow-2xl transition-all duration-300 border border-slate-700 flex flex-col justify-between group">
                     <div>
                         <div class="flex items-center justify-between mb-4">
-                            <div class="w-14 h-14 rounded-2xl overflow-hidden flex items-center justify-center bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 shadow-inner">
+                            <div class="w-14 h-14 rounded-2xl overflow-hidden flex items-center justify-center bg-slate-700 border border-slate-600">
                                 <template x-if="item.image">
                                     <img :src="item.image" class="w-full h-full object-cover">
                                 </template>
@@ -111,19 +91,205 @@
                                     <span class="text-2xl" x-text="item.icon || '📌'"></span>
                                 </template>
                             </div>
-
-                            <span class="text-xs font-semibold px-3 py-1 rounded-full bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400" x-text="item.category"></span>
+                            <span class="text-xs font-semibold px-3 py-1 rounded-full bg-emerald-900/40 text-emerald-400 border border-emerald-700/50" x-text="item.category"></span>
                         </div>
-                        <h3 class="font-bold text-lg text-gray-800 dark:text-white mb-2 group-hover:text-emerald-500 transition" x-text="item.title"></h3>
-                        <p class="text-gray-500 dark:text-gray-400 text-sm leading-relaxed mb-6" x-text="item.description"></p>
+                        <h3 class="font-bold text-lg text-white mb-2 group-hover:text-emerald-400 transition" x-text="item.title"></h3>
+                        <p class="text-gray-400 text-sm leading-relaxed mb-6" x-text="item.description"></p>
                     </div>
 
                     <div class="flex items-center space-x-2">
-                        <a :href="item.url" target="_blank" class="flex-1 py-3 rounded-xl font-medium text-sm flex items-center justify-center space-x-2 transition shadow-sm" :class="currentTheme.cardButtonClass">
-                            <span>Akses Layanan</span>
-                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                        <a :href="item.url" target="_blank" class="flex-1 py-3 rounded-xl font-medium text-sm text-center bg-emerald-600 text-white hover:bg-emerald-500 transition shadow-sm">
+                            Akses Layanan ↗
                         </a>
 
                         <template x-if="isAdmin">
-                            <button @click="deleteLink(item.id)" title="Hapus Kegiatan" class="p-3 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-xl transition">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995
+                            <button @click="deleteLink(item.id)" title="Hapus Kegiatan" class="p-3 text-red-400 hover:bg-red-900/30 rounded-xl transition">
+                                🗑️
+                            </button>
+                        </template>
+                    </div>
+                </div>
+            </template>
+        </div>
+
+        <div x-show="filteredLinks.length === 0" class="text-center py-16">
+            <p class="text-gray-400 text-lg">Tidak ada kegiatan atau layanan yang ditemukan.</p>
+        </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="mt-auto bg-slate-800 border-t border-slate-700 py-6">
+        <div class="max-w-7xl mx-auto px-4 text-center text-sm text-gray-400">
+            <p x-text="config.footerText"></p>
+        </div>
+    </footer>
+
+    <!-- MODAL POPUP: LOGIN ADMIN -->
+    <div x-show="showLoginModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" style="display: none;">
+        <div class="bg-slate-800 rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-700 space-y-4">
+            <div class="text-center">
+                <h3 class="text-lg font-bold text-white">Login Admin</h3>
+                <p class="text-xs text-gray-400 mt-1">Masukkan PIN (Default: 1234)</p>
+            </div>
+            <form @submit.prevent="loginAdmin()" class="space-y-4">
+                <input type="password" x-model="inputPin" placeholder="PIN Admin" required class="w-full p-3 text-center text-lg rounded-xl border border-slate-600 bg-slate-900 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                <div class="flex space-x-2">
+                    <button type="button" @click="showLoginModal = false" class="w-1/2 py-2.5 rounded-xl text-gray-300 bg-slate-700 hover:bg-slate-600">Batal</button>
+                    <button type="submit" class="w-1/2 py-2.5 rounded-xl text-white bg-emerald-600 hover:bg-emerald-500">Masuk</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL POPUP: TAMBAH KEGIATAN -->
+    <div x-show="showManager" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" style="display: none;">
+        <div class="bg-slate-800 rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-700 space-y-4">
+            <h3 class="text-xl font-bold text-white pb-2 border-b border-slate-700">Tambah Kegiatan Baru</h3>
+            <form @submit.prevent="addLink()" class="space-y-3">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-300 mb-1">Judul Kegiatan</label>
+                    <input type="text" x-model="newForm.title" required placeholder="Judul..." class="w-full p-3 rounded-xl border border-slate-600 bg-slate-900 text-white text-sm">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-300 mb-1">Kategori</label>
+                        <select x-model="newForm.category" class="w-full p-3 rounded-xl border border-slate-600 bg-slate-900 text-white text-sm">
+                            <template x-for="cat in categories" :key="cat">
+                                <option :value="cat" x-text="cat"></option>
+                            </template>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-300 mb-1">Ikon Emoji</label>
+                        <input type="text" x-model="newForm.icon" placeholder="📋, 🏥..." class="w-full p-3 rounded-xl border border-slate-600 bg-slate-900 text-white text-sm">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-300 mb-1">Upload Foto Kartu (Opsional)</label>
+                    <input type="file" accept="image/*" @change="uploadCardImage($event)" class="w-full text-xs text-gray-400 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-slate-700 file:text-white">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-300 mb-1">Deskripsi Singkat</label>
+                    <textarea x-model="newForm.description" required placeholder="Deskripsi..." class="w-full p-3 rounded-xl border border-slate-600 bg-slate-900 text-white text-sm h-20"></textarea>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-300 mb-1">URL / Link Tujuan</label>
+                    <input type="url" x-model="newForm.url" required placeholder="https://..." class="w-full p-3 rounded-xl border border-slate-600 bg-slate-900 text-white text-sm">
+                </div>
+                <div class="pt-2 flex space-x-2">
+                    <button type="button" @click="showManager = false" class="w-1/2 py-3 rounded-xl text-gray-300 bg-slate-700 hover:bg-slate-600">Batal</button>
+                    <button type="submit" class="w-1/2 py-3 rounded-xl text-white bg-emerald-600 hover:bg-emerald-500 font-medium">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- SCRIPT APLIKASI -->
+    <script>
+        function puskesmasApp() {
+            return {
+                isAdmin: false,
+                showLoginModal: false,
+                showManager: false,
+                inputPin: '',
+                adminPin: '1234',
+                
+                searchQuery: '',
+                selectedCategory: 'Semua',
+
+                newForm: { title: '', category: 'Kluster 1 & Manajemen', description: '', icon: '📋', image: '', url: '' },
+                
+                config: {
+                    appName: 'UPT Puskesmas Sentolo I',
+                    appSubtitle: 'Portal Layanan & Informasi Kesehatan',
+                    appLogoText: 'PKM',
+                    heroBadge: '✨ Layanan Kesehatan Terpadu',
+                    heroTitle: 'Selamat Datang di Portal Terpadu Puskesmas',
+                    heroDescription: 'Akses seluruh program kerja, pendaftaran layanan, rekam data, dan informasi kesehatan masyarakat secara cepat, transparan, dan terintegrasi.',
+                    footerText: '© 2026 UPT Puskesmas Sentolo I.'
+                },
+
+                categories: ['Kluster 1 & Manajemen', 'Kluster 2 (Ibu & Anak)', 'Kluster 3 (Usia Produktif)', 'Kluster 4 (Lansia & PTM)', 'Surveilans & Umum'],
+                links: [],
+
+                loginAdmin() {
+                    if (this.inputPin === this.adminPin) {
+                        this.isAdmin = true;
+                        this.showLoginModal = false;
+                        this.inputPin = '';
+                        localStorage.setItem('pkm_is_admin', 'true');
+                    } else {
+                        alert('PIN Admin Salah! Gunakan PIN: 1234');
+                    }
+                },
+
+                logoutAdmin() {
+                    this.isAdmin = false;
+                    localStorage.removeItem('pkm_is_admin');
+                },
+
+                uploadCardImage(event) {
+                    const file = event.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (e) => { this.newForm.image = e.target.result; };
+                        reader.readAsDataURL(file);
+                    }
+                },
+
+                addLink() {
+                    const newItem = {
+                        id: Date.now(),
+                        title: this.newForm.title,
+                        category: this.newForm.category,
+                        description: this.newForm.description,
+                        icon: this.newForm.icon || '📋',
+                        image: this.newForm.image || '',
+                        url: this.newForm.url
+                    };
+                    this.links.unshift(newItem);
+                    this.saveLinks();
+                    this.newForm = { title: '', category: 'Kluster 1 & Manajemen', description: '', icon: '📋', image: '', url: '' };
+                    this.showManager = false;
+                },
+
+                deleteLink(id) {
+                    if (confirm('Hapus kegiatan ini?')) {
+                        this.links = this.links.filter(item => item.id !== id);
+                        this.saveLinks();
+                    }
+                },
+
+                saveLinks() {
+                    localStorage.setItem('pkm_links_data', JSON.stringify(this.links));
+                },
+
+                get filteredLinks() {
+                    return this.links.filter(item => {
+                        const matchesSearch = item.title.toLowerCase().includes(this.searchQuery.toLowerCase()) || 
+                                              item.description.toLowerCase().includes(this.searchQuery.toLowerCase());
+                        const matchesCat = this.selectedCategory === 'Semua' || item.category === this.selectedCategory;
+                        return matchesSearch && matchesCat;
+                    });
+                },
+
+                init() {
+                    if (localStorage.getItem('pkm_is_admin') === 'true') this.isAdmin = true;
+
+                    const savedLinks = localStorage.getItem('pkm_links_data');
+                    if (savedLinks) {
+                        this.links = JSON.parse(savedLinks);
+                    } else {
+                        this.links = [
+                            { id: 1, title: 'ASPAK', category: 'Kluster 1 & Manajemen', description: 'Aplikasi Sarana, Prasarana, dan Alat Kesehatan Kementerian Kesehatan RI.', icon: '🏥', image: '', url: 'https://aspak.kemkes.go.id' },
+                            { id: 2, title: 'Pendaftaran Pasien Online', category: 'Surveilans & Umum', description: 'Layanan antrean dan pendaftaran berobat harian secara mandiri dari rumah.', icon: '📋', image: '', url: 'https://google.com' },
+                            { id: 3, title: 'Pengembangan Kompetensi Pegawai', category: 'Kluster 1 & Manajemen', description: 'Portal kehadiran, catatan pelatihan, pengembangan kompetensi, dan unduh sertifikat staf.', icon: '🎓', image: '', url: 'https://google.com' }
+                        ];
+                        this.saveLinks();
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>
