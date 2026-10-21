@@ -17,7 +17,7 @@
 </head>
 <body class="min-h-screen flex flex-col transition-colors duration-300" 
       :style="`--app-font: '${fontFamily}', sans-serif;`"
-      x-data="puskesmasApp()" 
+      x-data="puskesmasApp" 
       x-cloak
       :class="currentTheme.bgClass">
 
@@ -300,22 +300,4 @@
                             <template x-if="heroImageUrl">
                                 <img :src="heroImageUrl" class="w-full h-full object-cover">
                             </template>
-                            <template x-if="!heroImageUrl">
-                                <span class="text-xs text-gray-400">Belum ada foto (Menggunakan Gradasi Warna)</span>
-                            </template>
-                        </div>
-
-                        <input type="file" id="heroImageInput" accept="image/*" @change="uploadHeroImage($event)" class="hidden">
-                        
-                        <div class="flex space-x-2">
-                            <button @click="document.getElementById('heroImageInput').click()" class="flex-1 py-2 px-3 rounded-xl text-xs font-medium bg-emerald-600 text-white hover:bg-emerald-700 transition">
-                                📷 Pilih Foto Baru
-                            </button>
-                            <button x-show="heroImageUrl" @click="resetHeroImage()" class="py-2 px-3 rounded-xl text-xs font-medium text-red-500 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 transition">
-                                Hapus
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- KUSTOMISASI TEKS NAMA PUSKESMAS -->
-                    <div class="
+                            <template x-if="!hero
