@@ -43,7 +43,7 @@
                             <span>+ Tambah Kegiatan</span>
                         </button>
 
-                        <!-- Tombol Kustomisasi Web (Foto & Tampilan) -->
+                        <!-- Tombol Kustomisasi Web -->
                         <button @click="showCustomizer = true" class="flex items-center space-x-1 px-3 py-2 rounded-xl text-xs sm:text-sm font-medium shadow-sm transition active:scale-95" :class="currentTheme.buttonClass">
                             <span>⚙️ Kustomisasi Web</span>
                         </button>
@@ -55,7 +55,7 @@
                     </div>
                 </template>
 
-                <!-- TOMBOL LOGIN ADMIN (PENGUNJUNG UMUM) -->
+                <!-- TOMBOL LOGIN ADMIN -->
                 <template x-if="!isAdmin">
                     <button @click="showLoginModal = true" class="flex items-center space-x-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-medium bg-slate-800 text-gray-200 hover:bg-slate-700 transition">
                         <span>🔑 Login Admin</span>
@@ -68,7 +68,7 @@
     <!-- KONTEN UTAMA -->
     <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
-        <!-- HERO BANNER DENGAN PREVIEW FOTO UTAMA -->
+        <!-- HERO BANNER -->
         <section class="rounded-3xl p-8 mb-10 shadow-2xl relative overflow-hidden transition-all duration-300 min-h-[240px] flex items-center" 
                  :class="heroImageUrl ? '' : currentTheme.heroBg"
                  :style="heroImageUrl ? `background: linear-gradient(rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.65)), url('${heroImageUrl}') center/cover no-repeat;` : ''">
@@ -79,26 +79,58 @@
             </div>
         </section>
 
-        <!-- PENCARIAN & FILTER KATEGORI -->
-        <div class="mb-8 flex flex-col md:flex-row justify-between items-center gap-4">
-            <div class="w-full md:w-96 relative">
-                <input type="text" x-model="searchQuery" placeholder="🔍 Cari kegiatan atau layanan..." class="w-full px-4 py-3 rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-sm transition">
+        <!-- BARIS PENCARIAN & FITUR UBAH MODE TAMPILAN -->
+        <div class="mb-6 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+            <!-- PENCARIAN -->
+            <div class="w-full md:w-80 relative">
+                <input type="text" x-model="searchQuery" placeholder="🔍 Cari kegiatan atau layanan..." class="w-full px-4 py-3 rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-sm transition text-sm">
             </div>
-            <div class="flex items-center space-x-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0">
-                <button @click="selectedCategory = 'Semua'" :class="selectedCategory === 'Semua' ? currentTheme.accentBg + ' text-white' : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300'" class="px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition whitespace-nowrap">Semua</button>
-                <template x-for="cat in categories" :key="cat">
-                    <button @click="selectedCategory = cat" :class="selectedCategory === cat ? currentTheme.accentBg + ' text-white' : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300'" class="px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition whitespace-nowrap" x-text="cat"></button>
-                </template>
+
+            <!-- SWITCHER MODE TAMPILAN (Kartu / Tabel / Daftar) -->
+            <div class="flex items-center justify-between sm:justify-start gap-2 bg-white dark:bg-gray-800 p-1.5 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm">
+                <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 px-2 hidden sm:inline">Model Tampilan:</span>
+                <div class="flex space-x-1 w-full sm:w-auto">
+                    <!-- Option 1: Grid Kartu -->
+                    <button @click="viewMode = 'grid'" 
+                            :class="viewMode === 'grid' ? currentTheme.accentBg + ' text-white font-medium shadow-sm' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'"
+                            class="flex-1 sm:flex-initial px-3 py-2 rounded-xl text-xs flex items-center justify-center space-x-1.5 transition">
+                        <span>🎴</span>
+                        <span class="font-medium">Kartu</span>
+                    </button>
+
+                    <!-- Option 2: Tabel Sederhana -->
+                    <button @click="viewMode = 'table'" 
+                            :class="viewMode === 'table' ? currentTheme.accentBg + ' text-white font-medium shadow-sm' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'"
+                            class="flex-1 sm:flex-initial px-3 py-2 rounded-xl text-xs flex items-center justify-center space-x-1.5 transition">
+                        <span>📊</span>
+                        <span class="font-medium">Tabel</span>
+                    </button>
+
+                    <!-- Option 3: List Ringkas -->
+                    <button @click="viewMode = 'list'" 
+                            :class="viewMode === 'list' ? currentTheme.accentBg + ' text-white font-medium shadow-sm' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'"
+                            class="flex-1 sm:flex-initial px-3 py-2 rounded-xl text-xs flex items-center justify-center space-x-1.5 transition">
+                        <span>📑</span>
+                        <span class="font-medium">Daftar</span>
+                    </button>
+                </div>
             </div>
         </div>
 
-        <!-- DAFTAR KARTU KEGIATAN DENGAN PREVIEW FOTO KARTU -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- FILTER KATEGORI KLUSTER -->
+        <div class="mb-8 flex items-center space-x-2 overflow-x-auto pb-2 scrollbar-none">
+            <button @click="selectedCategory = 'Semua'" :class="selectedCategory === 'Semua' ? currentTheme.accentBg + ' text-white' : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'" class="px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition whitespace-nowrap">Semua</button>
+            <template x-for="cat in categories" :key="cat">
+                <button @click="selectedCategory = cat" :class="selectedCategory === cat ? currentTheme.accentBg + ' text-white' : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'" class="px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition whitespace-nowrap" x-text="cat"></button>
+            </template>
+        </div>
+
+        <!-- MODE 1: TAMPILAN KARTU (GRID) -->
+        <div x-show="viewMode === 'grid'" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             <template x-for="item in filteredLinks" :key="item.id">
                 <div class="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-md hover:shadow-2xl transition-all duration-300 border border-gray-100 dark:border-gray-700 flex flex-col justify-between group relative overflow-hidden">
                     <div>
                         <div class="flex items-center justify-between mb-4">
-                            <!-- PREVIEW FOTO/IKON KARTU -->
                             <div class="w-16 h-16 rounded-2xl overflow-hidden flex items-center justify-center bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 shadow-inner">
                                 <template x-if="item.image">
                                     <img :src="item.image" class="w-full h-full object-cover">
@@ -129,6 +161,97 @@
             </template>
         </div>
 
+        <!-- MODE 2: TAMPILAN TABEL SEDERHANA -->
+        <div x-show="viewMode === 'table'" class="bg-white dark:bg-gray-800 rounded-3xl border border-gray-200 dark:border-gray-700 shadow-md overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm text-gray-600 dark:text-gray-300">
+                    <thead class="bg-gray-50 dark:bg-gray-900/50 uppercase text-xs text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
+                        <tr>
+                            <th scope="col" class="px-6 py-4 font-semibold">Layanan / Kegiatan</th>
+                            <th scope="col" class="px-6 py-4 font-semibold">Kategori</th>
+                            <th scope="col" class="px-6 py-4 font-semibold">Keterangan / Fungsi</th>
+                            <th scope="col" class="px-6 py-4 font-semibold text-center">Tautan</th>
+                            <template x-if="isAdmin">
+                                <th scope="col" class="px-6 py-4 font-semibold text-center">Aksi</th>
+                            </template>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100 dark:divide-gray-700/50">
+                        <template x-for="item in filteredLinks" :key="item.id">
+                            <tr class="hover:bg-gray-50/80 dark:hover:bg-gray-700/40 transition">
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-10 h-10 rounded-xl flex-shrink-0 flex items-center justify-center bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 overflow-hidden">
+                                            <template x-if="item.image">
+                                                <img :src="item.image" class="w-full h-full object-cover">
+                                            </template>
+                                            <template x-if="!item.image">
+                                                <span class="text-xl" x-text="item.icon || '📌'"></span>
+                                            </template>
+                                        </div>
+                                        <span class="font-bold text-gray-800 dark:text-white" x-text="item.title"></span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400" x-text="item.category"></span>
+                                </td>
+                                <td class="px-6 py-4 text-xs max-w-xs sm:max-w-md text-gray-500 dark:text-gray-400 leading-relaxed" x-text="item.description"></td>
+                                <td class="px-6 py-4 text-center whitespace-nowrap">
+                                    <a :href="item.url" target="_blank" class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white transition shadow-sm">
+                                        Buka Link ↗
+                                    </a>
+                                </td>
+                                <template x-if="isAdmin">
+                                    <td class="px-6 py-4 text-center whitespace-nowrap">
+                                        <button @click="deleteLink(item.id)" title="Hapus Kegiatan" class="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition">
+                                            🗑️
+                                        </button>
+                                    </td>
+                                </template>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- MODE 3: TAMPILAN DAFTAR RINGKAS (LIST) -->
+        <div x-show="viewMode === 'list'" class="space-y-3">
+            <template x-for="item in filteredLinks" :key="item.id">
+                <div class="bg-white dark:bg-gray-800 rounded-2xl p-4 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition flex items-center justify-between gap-4">
+                    <div class="flex items-center space-x-4 min-w-0">
+                        <div class="w-12 h-12 rounded-xl flex-shrink-0 flex items-center justify-center bg-gray-100 dark:bg-gray-700 overflow-hidden border border-gray-200 dark:border-gray-600">
+                            <template x-if="item.image">
+                                <img :src="item.image" class="w-full h-full object-cover">
+                            </template>
+                            <template x-if="!item.image">
+                                <span class="text-2xl" x-text="item.icon || '📌'"></span>
+                            </template>
+                        </div>
+                        <div class="min-w-0">
+                            <div class="flex items-center space-x-2">
+                                <h3 class="font-bold text-gray-800 dark:text-white truncate text-base" x-text="item.title"></h3>
+                                <span class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300 hidden sm:inline-block" x-text="item.category"></span>
+                            </div>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 truncate max-w-xl" x-text="item.description"></p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center space-x-2 flex-shrink-0">
+                        <a :href="item.url" target="_blank" class="px-4 py-2 rounded-xl text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-700 transition shadow-sm">
+                            Kunjungi ↗
+                        </a>
+                        <template x-if="isAdmin">
+                            <button @click="deleteLink(item.id)" title="Hapus Kegiatan" class="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-xl transition">
+                                🗑️
+                            </button>
+                        </template>
+                    </div>
+                </div>
+            </template>
+        </div>
+
+        <!-- JIKA TIDAK ADA DATA -->
         <div x-show="filteredLinks.length === 0" class="text-center py-16">
             <p class="text-gray-500 dark:text-gray-400 text-lg">Belum ada kegiatan/layanan di kategori ini.</p>
         </div>
@@ -146,7 +269,7 @@
         <div class="bg-white dark:bg-gray-900 rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-gray-200 dark:border-gray-800 space-y-4">
             <div class="text-center">
                 <h3 class="text-lg font-bold text-gray-800 dark:text-white">Login Admin</h3>
-                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Masukkan PIN Admin (Default: 1234)</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Masukkan PIN Admin (Default: Sentolo1)</p>
             </div>
             <form @submit.prevent="loginAdmin()" class="space-y-4">
                 <input type="password" x-model="inputPin" placeholder="PIN Admin" required class="w-full p-3 text-center text-lg rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-emerald-500">
@@ -158,7 +281,7 @@
         </div>
     </div>
 
-    <!-- PANEL PENGATURAN TAMPILAN & FOTO HERO (PANEL KUSTOMISASI DENGAN PREVIEW) -->
+    <!-- PANEL PENGATURAN TAMPILAN & FOTO HERO -->
     <div x-show="showCustomizer" class="fixed inset-0 z-50 overflow-hidden" style="display: none;">
         <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="showCustomizer = false"></div>
         <div class="absolute inset-y-0 right-0 max-w-full flex pl-10">
@@ -173,7 +296,6 @@
                     <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-3">
                         <label class="block text-sm font-semibold text-gray-800 dark:text-white">🖼️ Foto Banner Utama (Hero Image)</label>
                         
-                        <!-- Latar Preview Foto -->
                         <div class="w-full h-32 rounded-xl overflow-hidden bg-gray-200 dark:bg-gray-700 border border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center relative">
                             <template x-if="heroImageUrl">
                                 <img :src="heroImageUrl" class="w-full h-full object-cover">
@@ -196,286 +318,4 @@
                     </div>
 
                     <!-- KUSTOMISASI TEKS NAMA PUSKESMAS -->
-                    <div class="space-y-2">
-                        <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300">Nama Puskesmas / Instansi</label>
-                        <input type="text" x-model="config.appName" @input="saveConfig()" class="w-full p-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-100 text-xs">
-                    </div>
-
-                    <!-- PILIH WARNA TEMA -->
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-3">Pilih Tema Warna</label>
-                        <div class="grid grid-cols-2 gap-2">
-                            <template x-for="(t, index) in themes" :key="index">
-                                <button @click="setTheme(index)" :class="currentThemeIndex === index ? 'ring-2 ring-emerald-500 shadow-md' : 'border border-gray-200 dark:border-gray-700'" class="p-2.5 rounded-xl flex items-center space-x-2 text-left transition bg-gray-50 dark:bg-gray-800">
-                                    <span class="w-5 h-5 rounded-full" :class="t.dotColor"></span>
-                                    <span class="text-xs font-medium text-gray-800 dark:text-gray-200" x-text="t.name"></span>
-                                </button>
-                            </template>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="pt-4 border-t border-gray-100 dark:border-gray-800">
-                    <button @click="showCustomizer = false" class="w-full py-3 rounded-xl font-medium text-white bg-emerald-600 hover:bg-emerald-700 transition shadow-md">
-                        Selesai Kustomisasi
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL POPUP: TAMBAH KEGIATAN BARU (DENGAN PREVIEW FOTO KARTU) -->
-    <div x-show="showManager" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" style="display: none;">
-        <div class="bg-white dark:bg-gray-900 rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-gray-200 dark:border-gray-800 space-y-4">
-            <h3 class="text-xl font-bold text-gray-800 dark:text-white pb-2 border-b border-gray-100 dark:border-gray-800">Tambah Kegiatan Baru</h3>
-            <form @submit.prevent="addLink()" class="space-y-3">
-                <div>
-                    <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">Judul Kegiatan</label>
-                    <input type="text" x-model="newForm.title" required placeholder="Judul..." class="w-full p-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-100 text-sm">
-                </div>
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">Kategori</label>
-                        <select x-model="newForm.category" class="w-full p-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-100 text-sm">
-                            <template x-for="cat in categories" :key="cat">
-                                <option :value="cat" x-text="cat"></option>
-                            </template>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">Ikon Emoji (Opsional)</label>
-                        <input type="text" x-model="newForm.icon" placeholder="📋, 🏥..." class="w-full p-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-100 text-sm">
-                    </div>
-                </div>
-
-                <!-- PREVIEW FOTO KARTU -->
-                <div>
-                    <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">🖼️ Foto Gambar Kotak Kartu (Opsional)</label>
-                    <div class="flex items-center space-x-3 mb-2">
-                        <div class="w-14 h-14 rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-center">
-                            <template x-if="newForm.image">
-                                <img :src="newForm.image" class="w-full h-full object-cover">
-                            </template>
-                            <template x-if="!newForm.image">
-                                <span class="text-xs text-gray-400">Preview</span>
-                            </template>
-                        </div>
-                        <input type="file" accept="image/*" @change="uploadCardImage($event)" class="text-xs text-gray-500 file:mr-2 file:py-2 file:px-3 file:rounded-xl file:border-0 file:bg-emerald-50 file:text-emerald-700">
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">Deskripsi Singkat</label>
-                    <textarea x-model="newForm.description" required placeholder="Deskripsi..." class="w-full p-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-100 text-sm h-16"></textarea>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">URL / Link Tujuan</label>
-                    <input type="url" x-model="newForm.url" required placeholder="https://..." class="w-full p-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-100 text-sm">
-                </div>
-                <div class="pt-2 flex space-x-2">
-                    <button type="button" @click="showManager = false" class="w-1/2 py-2.5 rounded-xl text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-800">Batal</button>
-                    <button type="submit" class="w-1/2 py-2.5 rounded-xl text-white bg-emerald-600 hover:bg-emerald-700 font-medium">Simpan Kegiatan</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- LOGIKA SCRIPT APLIKASI -->
-    <script>
-        function puskesmasApp() {
-            return {
-                isAdmin: false,
-                showLoginModal: false,
-                showCustomizer: false,
-                showManager: false,
-                inputPin: '',
-                adminPin: 'Sentolo1',
-                
-                searchQuery: '',
-                selectedCategory: 'Semua',
-                fontFamily: 'Inter',
-                currentThemeIndex: 0,
-                heroImageUrl: '',
-
-                newForm: { title: '', category: 'Kluster 1 & Manajemen', description: '', icon: '📋', image: '', url: '' },
-                
-                config: {
-                    appName: 'UPT Puskesmas Sentolo I',
-                    appSubtitle: 'Portal Layanan & Informasi Kesehatan',
-                    appLogoText: 'PKM',
-                    heroBadge: '✨ Layanan Kesehatan Terpadu',
-                    heroTitle: 'Selamat Datang di Portal Terpadu Puskesmas',
-                    heroDescription: 'Akses seluruh program kerja, pendaftaran layanan, rekam data, dan informasi kesehatan masyarakat secara cepat, transparan, dan terintegrasi.',
-                    footerText: '© 2026 UPT Puskesmas Sentolo I.'
-                },
-
-                categories: ['Kluster 1 & Manajemen', 'Kluster 2 (Ibu & Anak)', 'Kluster 3 (Usia Produktif)', 'Kluster 4 (Lansia & PTM)', 'Surveilans & Umum'],
-                links: [],
-
-                themes: [
-                    {
-                        name: 'Emerald Mint',
-                        dotColor: 'bg-emerald-600',
-                        bgClass: 'bg-slate-50 dark:bg-slate-950',
-                        headerBg: 'bg-white/80 dark:bg-slate-900/80',
-                        headerText: 'text-slate-800 dark:text-white',
-                        accentBg: 'bg-emerald-600',
-                        heroBg: 'bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-700',
-                        buttonClass: 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-slate-800 dark:text-emerald-400',
-                        cardButtonClass: 'bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white dark:bg-slate-700 dark:text-emerald-400 dark:hover:bg-emerald-600 dark:hover:text-white'
-                    },
-                    {
-                        name: 'Blue Ocean',
-                        dotColor: 'bg-blue-600',
-                        bgClass: 'bg-zinc-50 dark:bg-zinc-950',
-                        headerBg: 'bg-white/80 dark:bg-zinc-900/80',
-                        headerText: 'text-zinc-800 dark:text-white',
-                        accentBg: 'bg-blue-600',
-                        heroBg: 'bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-700',
-                        buttonClass: 'bg-blue-50 text-blue-700 hover:bg-blue-100 dark:bg-zinc-800 dark:text-blue-400',
-                        cardButtonClass: 'bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white dark:bg-zinc-700 dark:text-blue-400 dark:hover:bg-blue-600 dark:hover:text-white'
-                    },
-                    {
-                        name: 'Purple Sunset',
-                        dotColor: 'bg-purple-600',
-                        bgClass: 'bg-stone-50 dark:bg-stone-950',
-                        headerBg: 'bg-white/80 dark:bg-stone-900/80',
-                        headerText: 'text-stone-800 dark:text-white',
-                        accentBg: 'bg-purple-600',
-                        heroBg: 'bg-gradient-to-r from-purple-600 via-pink-600 to-rose-600',
-                        buttonClass: 'bg-purple-50 text-purple-700 hover:bg-purple-100 dark:bg-stone-800 dark:text-purple-400',
-                        cardButtonClass: 'bg-purple-50 text-purple-600 hover:bg-purple-600 hover:text-white dark:bg-stone-700 dark:text-purple-400 dark:hover:bg-purple-600 dark:hover:text-white'
-                    },
-                    {
-                        name: 'Dark Charcoal',
-                        dotColor: 'bg-gray-900',
-                        bgClass: 'bg-neutral-900 text-neutral-100',
-                        headerBg: 'bg-neutral-900/90',
-                        headerText: 'text-white',
-                        accentBg: 'bg-neutral-700',
-                        heroBg: 'bg-gradient-to-r from-neutral-800 to-neutral-950 border border-neutral-800',
-                        buttonClass: 'bg-neutral-800 text-neutral-200 hover:bg-neutral-700',
-                        cardButtonClass: 'bg-neutral-800 text-neutral-200 hover:bg-white hover:text-neutral-900'
-                    }
-                ],
-
-                get currentTheme() {
-                    return this.themes[this.currentThemeIndex] || this.themes[0];
-                },
-
-                loginAdmin() {
-                    if (this.inputPin === this.adminPin) {
-                        this.isAdmin = true;
-                        this.showLoginModal = false;
-                        this.inputPin = '';
-                        localStorage.setItem('pkm_is_admin', 'true');
-                    } else {
-                        alert('PIN Admin Salah! PIN Bawaan: 1234');
-                    }
-                },
-
-                logoutAdmin() {
-                    this.isAdmin = false;
-                    localStorage.removeItem('pkm_is_admin');
-                },
-
-                setTheme(index) {
-                    this.currentThemeIndex = index;
-                    localStorage.setItem('pkm_theme', index);
-                },
-
-                uploadHeroImage(event) {
-                    const file = event.target.files[0];
-                    if (file) {
-                        const reader = new FileReader();
-                        reader.onload = (e) => {
-                            this.heroImageUrl = e.target.result;
-                            localStorage.setItem('pkm_hero_image', this.heroImageUrl);
-                        };
-                        reader.readAsDataURL(file);
-                    }
-                },
-
-                resetHeroImage() {
-                    this.heroImageUrl = '';
-                    localStorage.removeItem('pkm_hero_image');
-                },
-
-                uploadCardImage(event) {
-                    const file = event.target.files[0];
-                    if (file) {
-                        const reader = new FileReader();
-                        reader.onload = (e) => { this.newForm.image = e.target.result; };
-                        reader.readAsDataURL(file);
-                    }
-                },
-
-                saveConfig() {
-                    localStorage.setItem('pkm_config', JSON.stringify(this.config));
-                },
-
-                addLink() {
-                    const newItem = {
-                        id: Date.now(),
-                        title: this.newForm.title,
-                        category: this.newForm.category,
-                        description: this.newForm.description,
-                        icon: this.newForm.icon || '📋',
-                        image: this.newForm.image || '',
-                        url: this.newForm.url
-                    };
-                    this.links.unshift(newItem);
-                    this.saveLinks();
-                    this.newForm = { title: '', category: 'Kluster 1 & Manajemen', description: '', icon: '📋', image: '', url: '' };
-                    this.showManager = false;
-                },
-
-                deleteLink(id) {
-                    if (confirm('Hapus kegiatan ini?')) {
-                        this.links = this.links.filter(item => item.id !== id);
-                        this.saveLinks();
-                    }
-                },
-
-                saveLinks() {
-                    localStorage.setItem('pkm_links_data', JSON.stringify(this.links));
-                },
-
-                get filteredLinks() {
-                    return this.links.filter(item => {
-                        const matchesSearch = item.title.toLowerCase().includes(this.searchQuery.toLowerCase()) || 
-                                              item.description.toLowerCase().includes(this.searchQuery.toLowerCase());
-                        const matchesCat = this.selectedCategory === 'Semua' || item.category === this.selectedCategory;
-                        return matchesSearch && matchesCat;
-                    });
-                },
-
-                init() {
-                    if (localStorage.getItem('pkm_is_admin') === 'true') this.isAdmin = true;
-
-                    const savedTheme = localStorage.getItem('pkm_theme');
-                    if (savedTheme !== null) this.currentThemeIndex = parseInt(savedTheme);
-
-                    const savedHeroImage = localStorage.getItem('pkm_hero_image');
-                    if (savedHeroImage) this.heroImageUrl = savedHeroImage;
-
-                    const savedConfig = localStorage.getItem('pkm_config');
-                    if (savedConfig) this.config = JSON.parse(savedConfig);
-
-                    const savedLinks = localStorage.getItem('pkm_links_data');
-                    if (savedLinks) {
-                        this.links = JSON.parse(savedLinks);
-                    } else {
-                        this.links = [
-                            { id: 1, title: 'ASPAK', category: 'Kluster 1 & Manajemen', description: 'Aplikasi Sarana, Prasarana, dan Alat Kesehatan Kementerian Kesehatan RI.', icon: '🏥', image: '', url: 'https://aspak.kemkes.go.id' },
-                            { id: 2, title: 'Pendaftaran Pasien Online', category: 'Surveilans & Umum', description: 'Layanan antrean dan pendaftaran berobat harian secara mandiri dari rumah.', icon: '📋', image: '', url: 'https://google.com' },
-                            { id: 3, title: 'Pengembangan Kompetensi Pegawai', category: 'Kluster 1 & Manajemen', description: 'Portal kehadiran, catatan pelatihan, pengembangan kompetensi, dan unduh sertifikat staf.', icon: '🎓', image: '', url: 'https://google.com' }
-                        ];
-                        this.saveLinks();
-                    }
-                }
-            }
-        }
-    </script>
-</body>
-</html>
+                    <div class="
