@@ -117,11 +117,19 @@
             </div>
         </div>
 
-        <!-- FILTER KATEGORI KLUSTER -->
+        <!-- FILTER KATEGORI KLUSTER DENGAN TOMBOL KELOLA KATEGORI (UNTUK ADMIN) -->
         <div class="mb-8 flex items-center space-x-2 overflow-x-auto pb-2 scrollbar-none">
             <button @click="selectedCategory = 'Semua'" :class="selectedCategory === 'Semua' ? currentTheme.accentBg + ' text-white' : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'" class="px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition whitespace-nowrap">Semua</button>
+            
             <template x-for="cat in categories" :key="cat">
                 <button @click="selectedCategory = cat" :class="selectedCategory === cat ? currentTheme.accentBg + ' text-white' : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'" class="px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition whitespace-nowrap" x-text="cat"></button>
+            </template>
+
+            <!-- TOMBOL KELOLA KATEGORI (HANYA MUNCUL JIKA MODE ADMIN AKTIF) -->
+            <template x-if="isAdmin">
+                <button @click="showCategoryModal = true" class="px-3 py-2 rounded-xl text-xs font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 hover:bg-amber-500/20 transition whitespace-nowrap flex items-center space-x-1">
+                    <span>⚙️ Kelola Kategori</span>
+                </button>
             </template>
         </div>
 
@@ -263,6 +271,46 @@
             <p x-text="config.footerText"></p>
         </div>
     </footer>
+
+    <!-- MODAL POPUP: KELOLA KATEGORI / KLUSTER (TAMBAH, UBAH NAMA, HAPUS) -->
+    <div x-show="showCategoryModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" style="display: none;">
+        <div class="bg-white dark:bg-gray-900 rounded-3xl max-w-md w-full p-6 shadow-2xl border border-gray-200 dark:border-gray-800 space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-gray-800">
+                <h3 class="text-lg font-bold text-gray-800 dark:text-white">⚙️ Kelola Kategori / Kluster</h3>
+                <button @click="showCategoryModal = false" class="text-gray-400 hover:text-gray-600">✕</button>
+            </div>
+
+            <!-- FORM TAMBAH KATEGORI BARU -->
+            <form @submit.prevent="addCategory()" class="space-y-2">
+                <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300">+ Tambah Kategori Baru</label>
+                <div class="flex space-x-2">
+                    <input type="text" x-model="newCategoryName" placeholder="Nama Kategori..." required class="flex-1 p-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-100 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    <button type="submit" class="px-4 py-2.5 rounded-xl text-xs font-medium text-white bg-emerald-600 hover:bg-emerald-700 transition">Tambah</button>
+                </div>
+            </form>
+
+            <hr class="border-gray-100 dark:border-gray-800 my-4">
+
+            <!-- DAFTAR KATEGORI UNTUK EDIT & HAPUS -->
+            <div class="space-y-2 max-h-60 overflow-y-auto pr-1">
+                <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300">Daftar Kategori Saat Ini</label>
+                <template x-for="(cat, index) in categories" :key="index">
+                    <div class="flex items-center space-x-2 bg-gray-50 dark:bg-gray-800 p-2 rounded-xl border border-gray-200 dark:border-gray-700">
+                        <input type="text" x-model="categories[index]" @change="saveCategories()" class="flex-1 px-2 py-1 bg-transparent text-xs text-gray-800 dark:text-gray-100 font-medium focus:outline-none focus:ring-1 focus:ring-emerald-500 rounded-lg">
+                        <button @click="deleteCategory(index)" title="Hapus Kategori" class="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition text-xs">
+                            🗑️
+                        </button>
+                    </div>
+                </template>
+            </div>
+
+            <div class="pt-2">
+                <button @click="showCategoryModal = false" class="w-full py-2.5 rounded-xl font-medium text-xs text-white bg-slate-800 hover:bg-slate-700 transition">
+                    Selesai
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- MODAL POPUP: LOGIN ADMIN -->
     <div x-show="showLoginModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" style="display: none;">
@@ -409,6 +457,7 @@
                 showLoginModal: false,
                 showCustomizer: false,
                 showManager: false,
+                showCategoryModal: false, // Modal Kelola Kategori
                 inputPin: '',
                 adminPin: 'Sentolo1',
                 
@@ -419,7 +468,8 @@
                 currentThemeIndex: 0,
                 heroImageUrl: '',
 
-                newForm: { title: '', category: 'Kluster 1 & Manajemen', description: '', icon: '📋', image: '', url: '' },
+                newCategoryName: '',
+                newForm: { title: '', category: '', description: '', icon: '📋', image: '', url: '' },
                 
                 config: {
                     appName: 'UPT Puskesmas Sentolo I',
@@ -431,7 +481,7 @@
                     footerText: '© 2026 UPT Puskesmas Sentolo I.'
                 },
 
-                categories: ['Kluster 1 & Manajemen', 'Kluster 2 (Ibu & Anak)', 'Kluster 3 (Usia Produktif)', 'Kluster 4 (Lansia & PTM)', 'Surveilans & Umum'],
+                categories: [],
                 links: [],
 
                 themes: [
@@ -506,6 +556,26 @@
                     localStorage.setItem('pkm_theme', index);
                 },
 
+                // FUNGSI MANAJEMEN KATEGORI
+                addCategory() {
+                    if (this.newCategoryName.trim()) {
+                        this.categories.push(this.newCategoryName.trim());
+                        this.saveCategories();
+                        this.newCategoryName = '';
+                    }
+                },
+
+                deleteCategory(index) {
+                    if (confirm(`Hapus kategori "${this.categories[index]}"?`)) {
+                        this.categories.splice(index, 1);
+                        this.saveCategories();
+                    }
+                },
+
+                saveCategories() {
+                    localStorage.setItem('pkm_categories_data', JSON.stringify(this.categories));
+                },
+
                 uploadHeroImage(event) {
                     const file = event.target.files[0];
                     if (file) {
@@ -540,7 +610,7 @@
                     const newItem = {
                         id: Date.now(),
                         title: this.newForm.title,
-                        category: this.newForm.category,
+                        category: this.newForm.category || (this.categories[0] || 'Umum'),
                         description: this.newForm.description,
                         icon: this.newForm.icon || '📋',
                         image: this.newForm.image || '',
@@ -548,7 +618,7 @@
                     };
                     this.links.unshift(newItem);
                     this.saveLinks();
-                    this.newForm = { title: '', category: 'Kluster 1 & Manajemen', description: '', icon: '📋', image: '', url: '' };
+                    this.newForm = { title: '', category: this.categories[0] || '', description: '', icon: '📋', image: '', url: '' };
                     this.showManager = false;
                 },
 
@@ -584,13 +654,21 @@
                     const savedConfig = localStorage.getItem('pkm_config');
                     if (savedConfig) this.config = JSON.parse(savedConfig);
 
+                    // LOGIK KATEGORI
+                    const savedCategories = localStorage.getItem('pkm_categories_data');
+                    if (savedCategories) {
+                        try { this.categories = JSON.parse(savedCategories); } catch(e) { this.categories = []; }
+                    }
+                    if (!this.categories || this.categories.length === 0) {
+                        this.categories = ['Kluster 1 & Manajemen', 'Kluster 2 (Ibu & Anak)', 'Kluster 3 (Usia Produktif)', 'Kluster 4 (Lansia & PTM)', 'Surveilans & Umum'];
+                        this.saveCategories();
+                    }
+                    this.newForm.category = this.categories[0] || '';
+
+                    // LOGIK LINKS
                     const savedLinks = localStorage.getItem('pkm_links_data');
                     if (savedLinks) {
-                        try {
-                            this.links = JSON.parse(savedLinks);
-                        } catch(e) {
-                            this.links = [];
-                        }
+                        try { this.links = JSON.parse(savedLinks); } catch(e) { this.links = []; }
                     }
                     
                     if (!this.links || this.links.length === 0) {
