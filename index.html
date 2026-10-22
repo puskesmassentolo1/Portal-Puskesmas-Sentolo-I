@@ -3,15 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal Layanan & Informasi Puskesmas</title>
+    <title>Portal & Dashboard Capaian Puskesmas</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Alpine.js CDN -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.5/dist/cdn.min.js"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Google Fonts -->
     <link id="dynamic-font-link" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: var(--app-font, 'Inter', sans-serif); }
+
+        /* STYLESHEET KHUSUS TAMPILAN CETAK / PDF */
+        @media print {
+            header, nav, .no-print, button {
+                display: none !important;
+            }
+            body {
+                background-color: white !important;
+                color: black !important;
+            }
+            main {
+                max-width: 100% !important;
+                padding: 0 !important;
+            }
+            .shadow-md, .shadow-2xl, .shadow-sm {
+                box-shadow: none !important;
+            }
+            .border {
+                border-color: #cbd5e1 !important;
+            }
+            .print-header {
+                display: block !important;
+                margin-bottom: 20px;
+                border-b: 2px solid #000;
+                padding-bottom: 10px;
+            }
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col transition-colors duration-300" 
@@ -22,6 +51,7 @@
     <!-- HEADER / NAVBAR -->
     <header :class="currentTheme.headerBg" class="shadow-md sticky top-0 z-40 backdrop-blur-md bg-opacity-90 transition-colors duration-300 border-b border-gray-200 dark:border-gray-800">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <!-- LOGO & NAMA PUSKESMAS -->
             <div class="flex items-center space-x-3">
                 <div class="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg" :class="currentTheme.accentBg" x-text="config.appLogoText"></div>
                 <div>
@@ -29,31 +59,45 @@
                     <p class="text-xs opacity-80" :class="currentTheme.headerText" x-text="config.appSubtitle"></p>
                 </div>
             </div>
+
+            <!-- NAVIGASI TAB HALAMAN UTAMA -->
+            <nav class="hidden md:flex items-center bg-gray-100 dark:bg-gray-800 p-1.5 rounded-2xl border border-gray-200 dark:border-gray-700">
+                <button @click="activeTab = 'dashboard'" 
+                        :class="activeTab === 'dashboard' ? currentTheme.accentBg + ' text-white shadow-sm' : 'text-gray-600 dark:text-gray-300 hover:text-emerald-500'" 
+                        class="px-4 py-2 rounded-xl text-xs font-semibold transition flex items-center space-x-1.5">
+                    <span>📊</span>
+                    <span>Dashboard Capaian</span>
+                </button>
+                <button @click="activeTab = 'portal'" 
+                        :class="activeTab === 'portal' ? currentTheme.accentBg + ' text-white shadow-sm' : 'text-gray-600 dark:text-gray-300 hover:text-emerald-500'" 
+                        class="px-4 py-2 rounded-xl text-xs font-semibold transition flex items-center space-x-1.5">
+                    <span>🔗</span>
+                    <span>Portal Layanan & Kegiatan</span>
+                </button>
+            </nav>
             
+            <!-- TOMBOL ADMIN -->
             <div class="flex items-center space-x-2">
-                <!-- MENU UNTUK ADMIN -->
                 <template x-if="isAdmin">
                     <div class="flex items-center space-x-2">
                         <span class="text-xs px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-500 border border-amber-500/30 font-semibold hidden sm:inline">Mode Admin Active</span>
                         
-                        <!-- Tombol Tambah Kegiatan -->
-                        <button @click="openAddModal()" class="flex items-center space-x-1 px-3 py-2 rounded-xl text-xs sm:text-sm font-medium bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm transition active:scale-95">
-                            <span>+ Tambah Kegiatan</span>
-                        </button>
+                        <template x-if="activeTab === 'portal'">
+                            <button @click="openAddModal()" class="flex items-center space-x-1 px-3 py-2 rounded-xl text-xs sm:text-sm font-medium bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm transition active:scale-95">
+                                <span>+ Tambah Kegiatan</span>
+                            </button>
+                        </template>
 
-                        <!-- Tombol Kustomisasi Web -->
                         <button @click="showCustomizer = true" class="flex items-center space-x-1 px-3 py-2 rounded-xl text-xs sm:text-sm font-medium shadow-sm transition active:scale-95" :class="currentTheme.buttonClass">
                             <span>⚙️ Kustomisasi Web</span>
                         </button>
 
-                        <!-- Tombol Keluar Admin -->
                         <button @click="logoutAdmin()" class="px-3 py-2 rounded-xl text-xs bg-red-500/10 text-red-500 hover:bg-red-500/20 transition">
                             Keluar
                         </button>
                     </div>
                 </template>
 
-                <!-- TOMBOL LOGIN ADMIN -->
                 <template x-if="!isAdmin">
                     <button @click="showLoginModal = true" class="flex items-center space-x-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-medium bg-slate-800 text-gray-200 hover:bg-slate-700 transition">
                         <span>🔑 Login Admin</span>
@@ -61,231 +105,390 @@
                 </template>
             </div>
         </div>
+
+        <!-- MOBILE TAB NAVIGATION -->
+        <div class="flex md:hidden border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800 px-4 py-2 justify-around">
+            <button @click="activeTab = 'dashboard'" :class="activeTab === 'dashboard' ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'text-gray-500'" class="text-xs flex items-center space-x-1 py-1">
+                <span>📊</span>
+                <span>Dashboard Capaian</span>
+            </button>
+            <button @click="activeTab = 'portal'" :class="activeTab === 'portal' ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'text-gray-500'" class="text-xs flex items-center space-x-1 py-1">
+                <span>🔗</span>
+                <span>Portal Layanan</span>
+            </button>
+        </div>
     </header>
 
     <!-- KONTEN UTAMA -->
     <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        
-        <!-- HERO BANNER -->
-        <section class="rounded-3xl p-8 mb-10 shadow-2xl relative overflow-hidden transition-all duration-300 min-h-[240px] flex items-center" 
-                 :class="heroImageUrl ? '' : currentTheme.heroBg"
-                 :style="heroImageUrl ? `background: linear-gradient(rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.65)), url('${heroImageUrl}') center/cover no-repeat;` : ''">
-            <div class="relative z-10 max-w-3xl">
-                <span class="inline-block px-3 py-1 rounded-full text-xs font-semibold mb-3 bg-white/20 backdrop-blur-md text-white" x-text="config.heroBadge"></span>
-                <h2 class="text-3xl sm:text-4xl font-extrabold text-white mb-4 leading-tight" x-text="config.heroTitle"></h2>
-                <p class="text-white/90 text-sm sm:text-base leading-relaxed max-w-2xl" x-text="config.heroDescription"></p>
-            </div>
-        </section>
 
-        <!-- BARIS PENCARIAN & FITUR UBAH MODE TAMPILAN -->
-        <div class="mb-6 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
-            <!-- PENCARIAN -->
-            <div class="w-full md:w-80 relative">
-                <input type="text" x-model="searchQuery" placeholder="🔍 Cari kegiatan atau layanan..." class="w-full px-4 py-3 rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-sm transition text-sm">
-            </div>
+        <!-- KOP SURAT CETAK (Hanya muncul saat print) -->
+        <div class="hidden print-header text-center">
+            <h1 class="text-2xl font-bold uppercase" x-text="config.appName"></h1>
+            <p class="text-sm text-gray-600" x-text="config.appSubtitle"></p>
+            <p class="text-xs text-gray-500 italic mt-1">Laporan Resmi Capaian Indikator Kinerja & Program Kesehatan</p>
+        </div>
 
-            <!-- SWITCHER MODE TAMPILAN (Kartu / Tabel / Daftar) -->
-            <div class="flex items-center justify-between sm:justify-start gap-2 bg-white dark:bg-gray-800 p-1.5 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm">
-                <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 px-2 hidden sm:inline">Model Tampilan:</span>
-                <div class="flex space-x-1 w-full sm:w-auto">
-                    <!-- Option 1: Grid Kartu -->
-                    <button @click="viewMode = 'grid'" 
-                            :class="viewMode === 'grid' ? currentTheme.accentBg + ' text-white font-medium shadow-sm' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'"
-                            class="flex-1 sm:flex-initial px-3 py-2 rounded-xl text-xs flex items-center justify-center space-x-1.5 transition">
-                        <span>🎴</span>
-                        <span class="font-medium">Kartu</span>
+        <!-- ========================================================= -->
+        <!-- HALAMAN 1: DASHBOARD CAPAAN PUSKESMAS (HALAMAN AWAL) -->
+        <!-- ========================================================= -->
+        <div x-show="activeTab === 'dashboard'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 transform translate-y-2" x-transition:enter-end="opacity-100 transform translate-y-0">
+            
+            <!-- HERO DASHBOARD BANNER -->
+            <section class="rounded-3xl p-8 mb-8 shadow-2xl relative overflow-hidden transition-all duration-300 min-h-[200px] flex items-center" 
+                     :class="heroImageUrl ? '' : currentTheme.heroBg"
+                     :style="heroImageUrl ? `background: linear-gradient(rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.65)), url('${heroImageUrl}') center/cover no-repeat;` : ''">
+                <div class="relative z-10 max-w-3xl">
+                    <span class="inline-block px-3 py-1 rounded-full text-xs font-semibold mb-3 bg-white/20 backdrop-blur-md text-white">📈 Transparansi & Kinerja</span>
+                    <h2 class="text-3xl sm:text-4xl font-extrabold text-white mb-3 leading-tight">Dashboard Capaian Program Kesehatan</h2>
+                    <p class="text-white/90 text-sm sm:text-base leading-relaxed max-w-2xl">Laporan capaian indikator mutu, target pelayanan terpadu, dan kinerjanya secara terukur untuk mewujudkan pelayanan kesehatan masyarakat yang optimal.</p>
+                </div>
+            </section>
+
+            <!-- ACTION BAR: TOMBOL CETAK & EKSPOR DATA -->
+            <div class="mb-6 flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-gray-800 p-4 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm no-print">
+                <div class="flex items-center space-x-2">
+                    <span class="text-xs font-semibold text-gray-500 dark:text-gray-400">📄 Opsi Ekspor Laporan:</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <!-- Tombol Cetak / Simpan PDF -->
+                    <button @click="printReport()" class="px-4 py-2 rounded-xl text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white transition flex items-center space-x-1.5 shadow-sm active:scale-95">
+                        <span>🖨️</span>
+                        <span>Cetak / Simpan PDF</span>
                     </button>
 
-                    <!-- Option 2: Tabel Sederhana -->
-                    <button @click="viewMode = 'table'" 
-                            :class="viewMode === 'table' ? currentTheme.accentBg + ' text-white font-medium shadow-sm' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'"
-                            class="flex-1 sm:flex-initial px-3 py-2 rounded-xl text-xs flex items-center justify-center space-x-1.5 transition">
+                    <!-- Tombol Ekspor Excel / CSV -->
+                    <button @click="exportToCSV()" class="px-4 py-2 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white transition flex items-center space-x-1.5 shadow-sm active:scale-95">
                         <span>📊</span>
-                        <span class="font-medium">Tabel</span>
+                        <span>Ekspor Excel / CSV</span>
                     </button>
+                </div>
+            </div>
 
-                    <!-- Option 3: List Ringkas -->
-                    <button @click="viewMode = 'list'" 
-                            :class="viewMode === 'list' ? currentTheme.accentBg + ' text-white font-medium shadow-sm' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'"
-                            class="flex-1 sm:flex-initial px-3 py-2 rounded-xl text-xs flex items-center justify-center space-x-1.5 transition">
-                        <span>📑</span>
-                        <span class="font-medium">Daftar</span>
+            <!-- CARD RINGKASAN KPI / STATISTIK UTAMA -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+                <div class="bg-white dark:bg-gray-800 p-5 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm flex items-center space-x-4">
+                    <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center text-2xl font-bold">🎯</div>
+                    <div>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">Capaian Kinerja Total</p>
+                        <h3 class="text-2xl font-extrabold text-gray-800 dark:text-white">92.4%</h3>
+                        <span class="text-[10px] text-emerald-500 font-semibold">↑ 3.2% dari target tahunan</span>
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-gray-800 p-5 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm flex items-center space-x-4">
+                    <div class="w-12 h-12 rounded-2xl bg-blue-500/10 text-blue-500 flex items-center justify-center text-2xl font-bold">👶</div>
+                    <div>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">Cakupan Imunisasi Rutin</p>
+                        <h3 class="text-2xl font-extrabold text-gray-800 dark:text-white">95.8%</h3>
+                        <span class="text-[10px] text-emerald-500 font-semibold">Tercapai (Target 95%)</span>
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-gray-800 p-5 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm flex items-center space-x-4">
+                    <div class="w-12 h-12 rounded-2xl bg-purple-500/10 text-purple-500 flex items-center justify-center text-2xl font-bold">🩺</div>
+                    <div>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">Skrining PTM Usia Subur</p>
+                        <h3 class="text-2xl font-extrabold text-gray-800 dark:text-white">88.1%</h3>
+                        <span class="text-[10px] text-amber-500 font-semibold">Progres Target Kluster 3</span>
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-gray-800 p-5 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm flex items-center space-x-4">
+                    <div class="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center text-2xl font-bold">⭐</div>
+                    <div>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">Indeks Kepuasan (IKM)</p>
+                        <h3 class="text-2xl font-extrabold text-gray-800 dark:text-white">89.6 / 100</h3>
+                        <span class="text-[10px] text-emerald-500 font-semibold">Kategori Sangat Baik</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- GRAFIK CAPAIAN -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+                <!-- CHART 1: GRAFIK CAPAIAN UTAMA (BAR CHART) -->
+                <div class="lg:col-span-2 bg-white dark:bg-gray-800 p-6 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-md">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-bold text-gray-800 dark:text-white text-base">📊 Realisasi Capaian Indikator Utama (%)</h3>
+                        <span class="text-xs text-gray-400">Update Terakhir: 2026</span>
+                    </div>
+                    <div class="h-64 sm:h-80 relative">
+                        <canvas id="capaianChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- CHART 2: PROPORSI DUKUNGAN LAYANAN KLUSTER (DOUGHNUT) -->
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-md">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-bold text-gray-800 dark:text-white text-base">🍩 Distribusi Layanan Kluster</h3>
+                    </div>
+                    <div class="h-64 sm:h-80 relative flex items-center justify-center">
+                        <canvas id="klusterChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TABEL DETAIL CAPAIAN PROGRAM -->
+            <div class="bg-white dark:bg-gray-800 rounded-3xl border border-gray-200 dark:border-gray-700 shadow-md overflow-hidden">
+                <div class="p-6 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
+                    <div>
+                        <h3 class="font-bold text-lg text-gray-800 dark:text-white">📋 Rincian Capaian Indikator Program Kesehatan</h3>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Target vs Realisasi seluruh indikator mutu Puskesmas</p>
+                    </div>
+                    <button @click="activeTab = 'portal'" class="text-xs font-semibold px-4 py-2 rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 hover:bg-emerald-100 transition no-print">
+                        Lihat Portal Layanan →
                     </button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm text-gray-600 dark:text-gray-300">
+                        <thead class="bg-gray-50 dark:bg-gray-900/50 uppercase text-xs text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
+                            <tr>
+                                <th class="px-6 py-4 font-semibold">Indikator Program</th>
+                                <th class="px-6 py-4 font-semibold">Kluster</th>
+                                <th class="px-6 py-4 font-semibold text-center">Target</th>
+                                <th class="px-6 py-4 font-semibold text-center">Capaian</th>
+                                <th class="px-6 py-4 font-semibold text-center">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100 dark:divide-gray-700/50">
+                            <template x-for="item in achievements" :key="item.id">
+                                <tr class="hover:bg-gray-50/80 dark:hover:bg-gray-700/40 transition">
+                                    <td class="px-6 py-4 font-bold text-gray-800 dark:text-white" x-text="item.name"></td>
+                                    <td class="px-6 py-4 text-xs" x-text="item.cluster"></td>
+                                    <td class="px-6 py-4 text-center font-medium" x-text="item.target + '%'"></td>
+                                    <td class="px-6 py-4 text-center font-bold text-emerald-600 dark:text-emerald-400" x-text="item.realization + '%'"></td>
+                                    <td class="px-6 py-4 text-center">
+                                        <span :class="item.realization >= item.target ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400'" class="px-3 py-1 rounded-full text-xs font-semibold" x-text="item.realization >= item.target ? 'Tercapai' : 'Progres'"></span>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
 
-        <!-- FILTER KATEGORI KLUSTER -->
-        <div class="mb-8 flex items-center space-x-2 overflow-x-auto pb-2 scrollbar-none">
-            <button @click="selectedCategory = 'Semua'" :class="selectedCategory === 'Semua' ? currentTheme.accentBg + ' text-white' : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'" class="px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition whitespace-nowrap">Semua</button>
+        <!-- ========================================================= -->
+        <!-- HALAMAN 2: PORTAL LAYANAN & KEGIATAN -->
+        <!-- ========================================================= -->
+        <div x-show="activeTab === 'portal'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 transform translate-y-2" x-transition:enter-end="opacity-100 transform translate-y-0">
             
-            <template x-for="cat in categories" :key="cat">
-                <button @click="selectedCategory = cat" :class="selectedCategory === cat ? currentTheme.accentBg + ' text-white' : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'" class="px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition whitespace-nowrap" x-text="cat"></button>
-            </template>
+            <!-- HERO BANNER PORTAL -->
+            <section class="rounded-3xl p-8 mb-10 shadow-2xl relative overflow-hidden transition-all duration-300 min-h-[200px] flex items-center" 
+                     :class="heroImageUrl ? '' : currentTheme.heroBg"
+                     :style="heroImageUrl ? `background: linear-gradient(rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.65)), url('${heroImageUrl}') center/cover no-repeat;` : ''">
+                <div class="relative z-10 max-w-3xl">
+                    <span class="inline-block px-3 py-1 rounded-full text-xs font-semibold mb-3 bg-white/20 backdrop-blur-md text-white" x-text="config.heroBadge"></span>
+                    <h2 class="text-3xl sm:text-4xl font-extrabold text-white mb-4 leading-tight" x-text="config.heroTitle"></h2>
+                    <p class="text-white/90 text-sm sm:text-base leading-relaxed max-w-2xl" x-text="config.heroDescription"></p>
+                </div>
+            </section>
 
-            <!-- TOMBOL KELOLA KATEGORI (HANYA ADMIN) -->
-            <template x-if="isAdmin">
-                <button @click="showCategoryModal = true" class="px-3 py-2 rounded-xl text-xs font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 hover:bg-amber-500/20 transition whitespace-nowrap flex items-center space-x-1">
-                    <span>⚙️ Kelola Kategori</span>
-                </button>
-            </template>
-        </div>
+            <!-- BARIS PENCARIAN & FITUR UBAH MODE TAMPILAN -->
+            <div class="mb-6 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+                <!-- PENCARIAN -->
+                <div class="w-full md:w-80 relative">
+                    <input type="text" x-model="searchQuery" placeholder="🔍 Cari kegiatan atau layanan..." class="w-full px-4 py-3 rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-sm transition text-sm">
+                </div>
 
-        <!-- MODE 1: TAMPILAN KARTU (GRID) -->
-        <div x-show="viewMode === 'grid'" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            <template x-for="item in filteredLinks" :key="item.id">
-                <div class="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-md hover:shadow-2xl transition-all duration-300 border border-gray-100 dark:border-gray-700 flex flex-col justify-between group relative overflow-hidden">
-                    <div>
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="w-16 h-16 rounded-2xl overflow-hidden flex items-center justify-center bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 shadow-inner">
+                <!-- SWITCHER MODE TAMPILAN (Kartu / Tabel / Daftar) -->
+                <div class="flex items-center justify-between sm:justify-start gap-2 bg-white dark:bg-gray-800 p-1.5 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm">
+                    <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 px-2 hidden sm:inline">Model Tampilan:</span>
+                    <div class="flex space-x-1 w-full sm:w-auto">
+                        <button @click="viewMode = 'grid'" 
+                                :class="viewMode === 'grid' ? currentTheme.accentBg + ' text-white font-medium shadow-sm' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'"
+                                class="flex-1 sm:flex-initial px-3 py-2 rounded-xl text-xs flex items-center justify-center space-x-1.5 transition">
+                            <span>🎴</span>
+                            <span class="font-medium">Kartu</span>
+                        </button>
+
+                        <button @click="viewMode = 'table'" 
+                                :class="viewMode === 'table' ? currentTheme.accentBg + ' text-white font-medium shadow-sm' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'"
+                                class="flex-1 sm:flex-initial px-3 py-2 rounded-xl text-xs flex items-center justify-center space-x-1.5 transition">
+                            <span>📊</span>
+                            <span class="font-medium">Tabel</span>
+                        </button>
+
+                        <button @click="viewMode = 'list'" 
+                                :class="viewMode === 'list' ? currentTheme.accentBg + ' text-white font-medium shadow-sm' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'"
+                                class="flex-1 sm:flex-initial px-3 py-2 rounded-xl text-xs flex items-center justify-center space-x-1.5 transition">
+                            <span>📑</span>
+                            <span class="font-medium">Daftar</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FILTER KATEGORI KLUSTER -->
+            <div class="mb-8 flex items-center space-x-2 overflow-x-auto pb-2 scrollbar-none">
+                <button @click="selectedCategory = 'Semua'" :class="selectedCategory === 'Semua' ? currentTheme.accentBg + ' text-white' : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'" class="px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition whitespace-nowrap">Semua</button>
+                
+                <template x-for="cat in categories" :key="cat">
+                    <button @click="selectedCategory = cat" :class="selectedCategory === cat ? currentTheme.accentBg + ' text-white' : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'" class="px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition whitespace-nowrap" x-text="cat"></button>
+                </template>
+
+                <template x-if="isAdmin">
+                    <button @click="showCategoryModal = true" class="px-3 py-2 rounded-xl text-xs font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 hover:bg-amber-500/20 transition whitespace-nowrap flex items-center space-x-1">
+                        <span>⚙️ Kelola Kategori</span>
+                    </button>
+                </template>
+            </div>
+
+            <!-- MODE 1: GRID KARTU -->
+            <div x-show="viewMode === 'grid'" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <template x-for="item in filteredLinks" :key="item.id">
+                    <div class="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-md hover:shadow-2xl transition-all duration-300 border border-gray-100 dark:border-gray-700 flex flex-col justify-between group relative overflow-hidden">
+                        <div>
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="w-16 h-16 rounded-2xl overflow-hidden flex items-center justify-center bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 shadow-inner">
+                                    <template x-if="item.image">
+                                        <img :src="item.image" class="w-full h-full object-cover">
+                                    </template>
+                                    <template x-if="!item.image">
+                                        <span class="text-3xl" x-text="item.icon || '📌'"></span>
+                                    </template>
+                                </div>
+
+                                <span class="text-xs font-semibold px-3 py-1 rounded-full bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400" x-text="item.category"></span>
+                            </div>
+                            <h3 class="font-bold text-lg text-gray-800 dark:text-white mb-2 group-hover:text-emerald-500 transition" x-text="item.title"></h3>
+                            <p class="text-gray-500 dark:text-gray-400 text-sm leading-relaxed mb-6" x-text="item.description"></p>
+                        </div>
+
+                        <div class="flex items-center space-x-2">
+                            <a :href="item.url" target="_blank" class="flex-1 py-3 rounded-xl font-medium text-sm text-center transition shadow-sm" :class="currentTheme.cardButtonClass">
+                                Akses Layanan ↗
+                            </a>
+
+                            <template x-if="isAdmin">
+                                <div class="flex items-center space-x-1">
+                                    <button @click="openEditModal(item)" title="Edit Kegiatan" class="p-3 text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/30 rounded-xl transition">
+                                        ✏️
+                                    </button>
+                                    <button @click="deleteLink(item.id)" title="Hapus Kegiatan" class="p-3 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-xl transition">
+                                        🗑️
+                                    </button>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </template>
+            </div>
+
+            <!-- MODE 2: TABEL -->
+            <div x-show="viewMode === 'table'" class="bg-white dark:bg-gray-800 rounded-3xl border border-gray-200 dark:border-gray-700 shadow-md overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm text-gray-600 dark:text-gray-300">
+                        <thead class="bg-gray-50 dark:bg-gray-900/50 uppercase text-xs text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
+                            <tr>
+                                <th scope="col" class="px-6 py-4 font-semibold">Layanan / Kegiatan</th>
+                                <th scope="col" class="px-6 py-4 font-semibold">Kategori</th>
+                                <th scope="col" class="px-6 py-4 font-semibold">Keterangan / Fungsi</th>
+                                <th scope="col" class="px-6 py-4 font-semibold text-center">Tautan</th>
+                                <template x-if="isAdmin">
+                                    <th scope="col" class="px-6 py-4 font-semibold text-center">Aksi</th>
+                                </template>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100 dark:divide-gray-700/50">
+                            <template x-for="item in filteredLinks" :key="item.id">
+                                <tr class="hover:bg-gray-50/80 dark:hover:bg-gray-700/40 transition">
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-10 h-10 rounded-xl flex-shrink-0 flex items-center justify-center bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 overflow-hidden">
+                                                <template x-if="item.image">
+                                                    <img :src="item.image" class="w-full h-full object-cover">
+                                                </template>
+                                                <template x-if="!item.image">
+                                                    <span class="text-xl" x-text="item.icon || '📌'"></span>
+                                                </template>
+                                            </div>
+                                            <span class="font-bold text-gray-800 dark:text-white" x-text="item.title"></span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400" x-text="item.category"></span>
+                                    </td>
+                                    <td class="px-6 py-4 text-xs max-w-xs sm:max-w-md text-gray-500 dark:text-gray-400 leading-relaxed" x-text="item.description"></td>
+                                    <td class="px-6 py-4 text-center whitespace-nowrap">
+                                        <a :href="item.url" target="_blank" class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white transition shadow-sm">
+                                            Buka Link ↗
+                                        </a>
+                                    </td>
+                                    <template x-if="isAdmin">
+                                        <td class="px-6 py-4 text-center whitespace-nowrap space-x-1">
+                                            <button @click="openEditModal(item)" title="Edit Kegiatan" class="p-1.5 text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/30 rounded-lg transition">
+                                                ✏️
+                                            </button>
+                                            <button @click="deleteLink(item.id)" title="Hapus Kegiatan" class="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition">
+                                                🗑️
+                                            </button>
+                                        </td>
+                                    </template>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- MODE 3: DAFTAR (LIST) -->
+            <div x-show="viewMode === 'list'" class="space-y-3">
+                <template x-for="item in filteredLinks" :key="item.id">
+                    <div class="bg-white dark:bg-gray-800 rounded-2xl p-4 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition flex items-center justify-between gap-4">
+                        <div class="flex items-center space-x-4 min-w-0">
+                            <div class="w-12 h-12 rounded-xl flex-shrink-0 flex items-center justify-center bg-gray-100 dark:bg-gray-700 overflow-hidden border border-gray-200 dark:border-gray-600">
                                 <template x-if="item.image">
                                     <img :src="item.image" class="w-full h-full object-cover">
                                 </template>
                                 <template x-if="!item.image">
-                                    <span class="text-3xl" x-text="item.icon || '📌'"></span>
+                                    <span class="text-2xl" x-text="item.icon || '📌'"></span>
                                 </template>
                             </div>
-
-                            <span class="text-xs font-semibold px-3 py-1 rounded-full bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400" x-text="item.category"></span>
-                        </div>
-                        <h3 class="font-bold text-lg text-gray-800 dark:text-white mb-2 group-hover:text-emerald-500 transition" x-text="item.title"></h3>
-                        <p class="text-gray-500 dark:text-gray-400 text-sm leading-relaxed mb-6" x-text="item.description"></p>
-                    </div>
-
-                    <div class="flex items-center space-x-2">
-                        <a :href="item.url" target="_blank" class="flex-1 py-3 rounded-xl font-medium text-sm text-center transition shadow-sm" :class="currentTheme.cardButtonClass">
-                            Akses Layanan ↗
-                        </a>
-
-                        <!-- TOMBOL EDIT & HAPUS (MODE ADMIN) -->
-                        <template x-if="isAdmin">
-                            <div class="flex items-center space-x-1">
-                                <button @click="openEditModal(item)" title="Edit Kegiatan" class="p-3 text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/30 rounded-xl transition">
-                                    ✏️
-                                </button>
-                                <button @click="deleteLink(item.id)" title="Hapus Kegiatan" class="p-3 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-xl transition">
-                                    🗑️
-                                </button>
+                            <div class="min-w-0">
+                                <div class="flex items-center space-x-2">
+                                    <h3 class="font-bold text-gray-800 dark:text-white truncate text-base" x-text="item.title"></h3>
+                                    <span class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300 hidden sm:inline-block" x-text="item.category"></span>
+                                </div>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 truncate max-w-xl" x-text="item.description"></p>
                             </div>
-                        </template>
-                    </div>
-                </div>
-            </template>
-        </div>
+                        </div>
 
-        <!-- MODE 2: TAMPILAN TABEL SEDERHANA -->
-        <div x-show="viewMode === 'table'" class="bg-white dark:bg-gray-800 rounded-3xl border border-gray-200 dark:border-gray-700 shadow-md overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-sm text-gray-600 dark:text-gray-300">
-                    <thead class="bg-gray-50 dark:bg-gray-900/50 uppercase text-xs text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
-                        <tr>
-                            <th scope="col" class="px-6 py-4 font-semibold">Layanan / Kegiatan</th>
-                            <th scope="col" class="px-6 py-4 font-semibold">Kategori</th>
-                            <th scope="col" class="px-6 py-4 font-semibold">Keterangan / Fungsi</th>
-                            <th scope="col" class="px-6 py-4 font-semibold text-center">Tautan</th>
+                        <div class="flex items-center space-x-2 flex-shrink-0">
+                            <a :href="item.url" target="_blank" class="px-4 py-2 rounded-xl text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-700 transition shadow-sm">
+                                Kunjungi ↗
+                            </a>
                             <template x-if="isAdmin">
-                                <th scope="col" class="px-6 py-4 font-semibold text-center">Aksi</th>
+                                <div class="flex items-center space-x-1">
+                                    <button @click="openEditModal(item)" title="Edit Kegiatan" class="p-2 text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/30 rounded-xl transition">
+                                        ✏️
+                                    </button>
+                                    <button @click="deleteLink(item.id)" title="Hapus Kegiatan" class="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-xl transition">
+                                        🗑️
+                                    </button>
+                                </div>
                             </template>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-100 dark:divide-gray-700/50">
-                        <template x-for="item in filteredLinks" :key="item.id">
-                            <tr class="hover:bg-gray-50/80 dark:hover:bg-gray-700/40 transition">
-                                <td class="px-6 py-4">
-                                    <div class="flex items-center space-x-3">
-                                        <div class="w-10 h-10 rounded-xl flex-shrink-0 flex items-center justify-center bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 overflow-hidden">
-                                            <template x-if="item.image">
-                                                <img :src="item.image" class="w-full h-full object-cover">
-                                            </template>
-                                            <template x-if="!item.image">
-                                                <span class="text-xl" x-text="item.icon || '📌'"></span>
-                                            </template>
-                                        </div>
-                                        <span class="font-bold text-gray-800 dark:text-white" x-text="item.title"></span>
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400" x-text="item.category"></span>
-                                </td>
-                                <td class="px-6 py-4 text-xs max-w-xs sm:max-w-md text-gray-500 dark:text-gray-400 leading-relaxed" x-text="item.description"></td>
-                                <td class="px-6 py-4 text-center whitespace-nowrap">
-                                    <a :href="item.url" target="_blank" class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white transition shadow-sm">
-                                        Buka Link ↗
-                                    </a>
-                                </td>
-                                <template x-if="isAdmin">
-                                    <td class="px-6 py-4 text-center whitespace-nowrap space-x-1">
-                                        <button @click="openEditModal(item)" title="Edit Kegiatan" class="p-1.5 text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/30 rounded-lg transition">
-                                            ✏️
-                                        </button>
-                                        <button @click="deleteLink(item.id)" title="Hapus Kegiatan" class="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition">
-                                            🗑️
-                                        </button>
-                                    </td>
-                                </template>
-                            </tr>
-                        </template>
-                    </tbody>
-                </table>
+                        </div>
+                    </div>
+                </template>
             </div>
-        </div>
 
-        <!-- MODE 3: TAMPILAN DAFTAR RINGKAS (LIST) -->
-        <div x-show="viewMode === 'list'" class="space-y-3">
-            <template x-for="item in filteredLinks" :key="item.id">
-                <div class="bg-white dark:bg-gray-800 rounded-2xl p-4 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition flex items-center justify-between gap-4">
-                    <div class="flex items-center space-x-4 min-w-0">
-                        <div class="w-12 h-12 rounded-xl flex-shrink-0 flex items-center justify-center bg-gray-100 dark:bg-gray-700 overflow-hidden border border-gray-200 dark:border-gray-600">
-                            <template x-if="item.image">
-                                <img :src="item.image" class="w-full h-full object-cover">
-                            </template>
-                            <template x-if="!item.image">
-                                <span class="text-2xl" x-text="item.icon || '📌'"></span>
-                            </template>
-                        </div>
-                        <div class="min-w-0">
-                            <div class="flex items-center space-x-2">
-                                <h3 class="font-bold text-gray-800 dark:text-white truncate text-base" x-text="item.title"></h3>
-                                <span class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300 hidden sm:inline-block" x-text="item.category"></span>
-                            </div>
-                            <p class="text-xs text-gray-500 dark:text-gray-400 truncate max-w-xl" x-text="item.description"></p>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center space-x-2 flex-shrink-0">
-                        <a :href="item.url" target="_blank" class="px-4 py-2 rounded-xl text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-700 transition shadow-sm">
-                            Kunjungi ↗
-                        </a>
-                        <template x-if="isAdmin">
-                            <div class="flex items-center space-x-1">
-                                <button @click="openEditModal(item)" title="Edit Kegiatan" class="p-2 text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/30 rounded-xl transition">
-                                    ✏️
-                                </button>
-                                <button @click="deleteLink(item.id)" title="Hapus Kegiatan" class="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-xl transition">
-                                    🗑️
-                                </button>
-                            </div>
-                        </template>
-                    </div>
-                </div>
-            </template>
-        </div>
-
-        <!-- JIKA TIDAK ADA DATA -->
-        <div x-show="filteredLinks.length === 0" class="text-center py-16">
-            <p class="text-gray-500 dark:text-gray-400 text-lg">Belum ada kegiatan/layanan di kategori ini.</p>
+            <!-- JIKA TIDAK ADA DATA -->
+            <div x-show="filteredLinks.length === 0" class="text-center py-16">
+                <p class="text-gray-500 dark:text-gray-400 text-lg">Belum ada kegiatan/layanan di kategori ini.</p>
+            </div>
         </div>
     </main>
 
     <!-- FOOTER -->
-    <footer class="mt-auto bg-white dark:bg-gray-800 border-t border-gray-100 dark:border-gray-700 py-6">
+    <footer class="mt-auto bg-white dark:bg-gray-800 border-t border-gray-100 dark:border-gray-700 py-6 no-print">
         <div class="max-w-7xl mx-auto px-4 text-center text-sm text-gray-500 dark:text-gray-400">
             <p x-text="config.footerText"></p>
         </div>
     </footer>
 
-    <!-- MODAL POPUP: KELOLA KATEGORI / KLUSTER -->
-    <div x-show="showCategoryModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" style="display: none;">
+    <!-- MODAL POPUP: KELOLA KATEGORI -->
+    <div x-show="showCategoryModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm no-print" style="display: none;">
         <div class="bg-white dark:bg-gray-900 rounded-3xl max-w-md w-full p-6 shadow-2xl border border-gray-200 dark:border-gray-800 space-y-4">
             <div class="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-gray-800">
                 <h3 class="text-lg font-bold text-gray-800 dark:text-white">⚙️ Kelola Kategori / Kluster</h3>
@@ -323,7 +526,7 @@
     </div>
 
     <!-- MODAL POPUP: LOGIN ADMIN -->
-    <div x-show="showLoginModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" style="display: none;">
+    <div x-show="showLoginModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm no-print" style="display: none;">
         <div class="bg-white dark:bg-gray-900 rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-gray-200 dark:border-gray-800 space-y-4">
             <div class="text-center">
                 <h3 class="text-lg font-bold text-gray-800 dark:text-white">Login Admin</h3>
@@ -340,7 +543,7 @@
     </div>
 
     <!-- PANEL PENGATURAN TAMPILAN & FOTO HERO -->
-    <div x-show="showCustomizer" class="fixed inset-0 z-50 overflow-hidden" style="display: none;">
+    <div x-show="showCustomizer" class="fixed inset-0 z-50 overflow-hidden no-print" style="display: none;">
         <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="showCustomizer = false"></div>
         <div class="absolute inset-y-0 right-0 max-w-full flex pl-10">
             <div class="w-screen max-w-md bg-white dark:bg-gray-900 shadow-2xl p-6 flex flex-col justify-between overflow-y-auto space-y-6">
@@ -350,7 +553,6 @@
                         <button @click="showCustomizer = false" class="text-gray-400 hover:text-gray-600">✕</button>
                     </div>
 
-                    <!-- PREVIEW & UPLOAD FOTO BANNER UTAMA -->
                     <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-3">
                         <label class="block text-sm font-semibold text-gray-800 dark:text-white">🖼️ Foto Banner Utama (Hero Image)</label>
                         
@@ -375,13 +577,11 @@
                         </div>
                     </div>
 
-                    <!-- KUSTOMISASI TEKS NAMA PUSKESMAS -->
                     <div class="space-y-2">
                         <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300">Nama Puskesmas / Instansi</label>
                         <input type="text" x-model="config.appName" @input="saveConfig()" class="w-full p-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-100 text-xs">
                     </div>
 
-                    <!-- PILIH WARNA TEMA -->
                     <div>
                         <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-3">Pilih Tema Warna</label>
                         <div class="grid grid-cols-2 gap-2">
@@ -405,7 +605,7 @@
     </div>
 
     <!-- MODAL POPUP: TAMBAH / EDIT KEGIATAN -->
-    <div x-show="showManager" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" style="display: none;">
+    <div x-show="showManager" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm no-print" style="display: none;">
         <div class="bg-white dark:bg-gray-900 rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-gray-200 dark:border-gray-800 space-y-4">
             <h3 class="text-xl font-bold text-gray-800 dark:text-white pb-2 border-b border-gray-100 dark:border-gray-800" x-text="isEditing ? '✏️ Edit Kegiatan' : '+ Tambah Kegiatan Baru'"></h3>
             <form @submit.prevent="saveLink()" class="space-y-3">
@@ -445,169 +645,271 @@
 
                 <div>
                     <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">Deskripsi Singkat</label>
-                    <textarea x-model="linkForm.description" required placeholder="Deskripsi..." class="w-full p-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-100 text-sm h-16"></textarea>
+                    <textarea x-model="linkForm.description" rows="2" placeholder="Deskripsi layanan..." class="w-full p-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-100 text-sm"></textarea>
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">URL / Link Tujuan</label>
+                    <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">URL / Tautan (https://...)</label>
                     <input type="url" x-model="linkForm.url" required placeholder="https://..." class="w-full p-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-100 text-sm">
                 </div>
-                <div class="pt-2 flex space-x-2">
-                    <button type="button" @click="showManager = false" class="w-1/2 py-2.5 rounded-xl text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-800">Batal</button>
-                    <button type="submit" class="w-1/2 py-2.5 rounded-xl text-white bg-emerald-600 hover:bg-emerald-700 font-medium" x-text="isEditing ? 'Simpan Perubahan' : 'Simpan Kegiatan'"></button>
+                <div class="flex space-x-2 pt-3">
+                    <button type="button" @click="showManager = false" class="w-1/2 py-2.5 rounded-xl font-medium text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 transition">Batal</button>
+                    <button type="submit" class="w-1/2 py-2.5 rounded-xl font-medium text-white bg-emerald-600 hover:bg-emerald-700 transition shadow-md">Simpan</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- LOGIKA SCRIPT APLIKASI -->
+    <!-- ALPINE.JS LOGIC & CHART LOGIC -->
     <script>
         function puskesmasApp() {
             return {
+                activeTab: 'dashboard',
                 isAdmin: false,
                 showLoginModal: false,
                 showCustomizer: false,
-                showManager: false,
                 showCategoryModal: false,
-                isEditing: false, // Menandakan mode Tambah atau Edit
-                editingId: null,
-
+                showManager: false,
+                isEditing: false,
                 inputPin: '',
-                adminPin: 'Sentolo1',
-                
-                viewMode: 'grid',
                 searchQuery: '',
                 selectedCategory: 'Semua',
+                viewMode: 'grid', 
                 fontFamily: 'Inter',
-                currentThemeIndex: 0,
                 heroImageUrl: '',
-
+                currentThemeIndex: 0,
                 newCategoryName: '',
-                linkForm: { title: '', category: '', description: '', icon: '📋', image: '', url: '' },
-                
+
                 config: {
-                    appName: 'UPT Puskesmas Sentolo I',
-                    appSubtitle: 'Portal Layanan & Informasi Kesehatan',
+                    appName: 'Puskesmas Portal',
+                    appSubtitle: 'Sistem Informasi & Layanan Terpadu',
                     appLogoText: 'PKM',
-                    heroBadge: '✨ Layanan Kesehatan Terpadu',
-                    heroTitle: 'Selamat Datang di Portal Terpadu Puskesmas',
-                    heroDescription: 'Akses seluruh program kerja, pendaftaran layanan, rekam data, dan informasi kesehatan masyarakat secara cepat, transparan, dan terintegrasi.',
-                    footerText: '© 2026 UPT Puskesmas Sentolo I.'
+                    heroBadge: '✨ Layanan Kesehatan Masyarakat',
+                    heroTitle: 'Selamat Datang di Portal Layanan Puskesmas',
+                    heroDescription: 'Akses seluruh informasi program kesehatan, pendaftaran layanan, dan direktori kluster dengan mudah, cepat, dan transparan.',
+                    footerText: '© 2026 Portal Layanan Puskesmas. Seluruh Hak Cipta Dilindungi.'
                 },
 
-                categories: [],
-                links: [],
+                achievements: [
+                    { id: 1, name: 'Cakupan Imunisasi Dasar Lengkap (IDL)', cluster: 'Kluster 2: Ibu & Anak', target: 95, realization: 96.2 },
+                    { id: 2, name: 'Pemeriksaan Ibu Hamil (K6)', cluster: 'Kluster 2: Ibu & Anak', target: 90, realization: 93.5 },
+                    { id: 3, name: 'Skrining PTM Usia 15-59 Tahun', cluster: 'Kluster 3: Usia Dewasa & Lansia', target: 80, realization: 88.1 },
+                    { id: 4, name: 'Pelayanan Kunjungan Lansia', cluster: 'Kluster 3: Usia Dewasa & Lansia', target: 85, realization: 82.0 },
+                    { id: 5, name: 'Penemuan & Pengobatan TBC', cluster: 'Kluster 4: Pencegahan Penyakit', target: 90, realization: 91.4 },
+                    { id: 6, name: 'Tingkat Kepuasan Pasien Rawat Jalan', cluster: 'Kluster 1: Manajemen', target: 85, realization: 89.6 }
+                ],
 
                 themes: [
                     {
-                        name: 'Emerald Mint',
+                        name: 'Emerald Clean (Default)',
                         dotColor: 'bg-emerald-600',
-                        bgClass: 'bg-slate-50 dark:bg-slate-950',
-                        headerBg: 'bg-white/80 dark:bg-slate-900/80',
-                        headerText: 'text-slate-800 dark:text-white',
+                        bgClass: 'bg-slate-50 dark:bg-gray-900 text-gray-800 dark:text-gray-100',
+                        headerBg: 'bg-white dark:bg-gray-800',
+                        headerText: 'text-gray-800 dark:text-white',
+                        heroBg: 'bg-gradient-to-r from-emerald-600 to-teal-700',
                         accentBg: 'bg-emerald-600',
-                        heroBg: 'bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-700',
-                        buttonClass: 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-slate-800 dark:text-emerald-400',
-                        cardButtonClass: 'bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white dark:bg-slate-700 dark:text-emerald-400 dark:hover:bg-emerald-600 dark:hover:text-white'
+                        buttonClass: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 hover:bg-emerald-100',
+                        cardButtonClass: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 hover:bg-emerald-600 hover:text-white'
                     },
                     {
-                        name: 'Sunny Gold',
-                        dotColor: 'bg-amber-400',
-                        bgClass: 'bg-amber-50/50 dark:bg-slate-950',
-                        headerBg: 'bg-white/90 dark:bg-slate-900/80',
-                        headerText: 'text-amber-900 dark:text-amber-300',
-                        accentBg: 'bg-amber-500',
-                        heroBg: 'bg-gradient-to-r from-amber-500 via-orange-500 to-yellow-600',
-                        buttonClass: 'bg-amber-100 text-amber-800 hover:bg-amber-200 dark:bg-slate-800 dark:text-amber-400',
-                        cardButtonClass: 'bg-amber-50 text-amber-700 hover:bg-amber-500 hover:text-white dark:bg-slate-700 dark:text-amber-300'
-                    },
-                    {
-                        name: 'Fresh Teal',
-                        dotColor: 'bg-teal-500',
-                        bgClass: 'bg-teal-50/40 dark:bg-slate-950',
-                        headerBg: 'bg-white/90 dark:bg-slate-900/80',
-                        headerText: 'text-teal-900 dark:text-teal-300',
-                        accentBg: 'bg-teal-600',
-                        heroBg: 'bg-gradient-to-r from-teal-500 via-emerald-500 to-cyan-600',
-                        buttonClass: 'bg-teal-100 text-teal-800 hover:bg-teal-200 dark:bg-slate-800 dark:text-teal-400',
-                        cardButtonClass: 'bg-teal-50 text-teal-700 hover:bg-teal-600 hover:text-white dark:bg-slate-700 dark:text-teal-300'
-                    },
-                    {
-                        name: 'Blue Ocean',
+                        name: 'Ocean Blue',
                         dotColor: 'bg-blue-600',
-                        bgClass: 'bg-zinc-50 dark:bg-zinc-950',
-                        headerBg: 'bg-white/80 dark:bg-zinc-900/80',
-                        headerText: 'text-zinc-800 dark:text-white',
+                        bgClass: 'bg-slate-50 dark:bg-gray-900 text-gray-800 dark:text-gray-100',
+                        headerBg: 'bg-white dark:bg-gray-800',
+                        headerText: 'text-gray-800 dark:text-white',
+                        heroBg: 'bg-gradient-to-r from-blue-600 to-indigo-700',
                         accentBg: 'bg-blue-600',
-                        heroBg: 'bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-700',
-                        buttonClass: 'bg-blue-50 text-blue-700 hover:bg-blue-100 dark:bg-zinc-800 dark:text-blue-400',
-                        cardButtonClass: 'bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white dark:bg-zinc-700 dark:text-blue-400 dark:hover:bg-blue-600 dark:hover:text-white'
+                        buttonClass: 'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 hover:bg-blue-100',
+                        cardButtonClass: 'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 hover:bg-blue-600 hover:text-white'
                     },
                     {
-                        name: 'Purple Sunset',
+                        name: 'Sunset Warm',
+                        dotColor: 'bg-amber-600',
+                        bgClass: 'bg-stone-50 dark:bg-gray-900 text-gray-800 dark:text-gray-100',
+                        headerBg: 'bg-white dark:bg-gray-800',
+                        headerText: 'text-gray-800 dark:text-white',
+                        heroBg: 'bg-gradient-to-r from-amber-600 to-orange-700',
+                        accentBg: 'bg-amber-600',
+                        buttonClass: 'bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400 hover:bg-amber-100',
+                        cardButtonClass: 'bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400 hover:bg-amber-600 hover:text-white'
+                    },
+                    {
+                        name: 'Midnight Dark',
                         dotColor: 'bg-purple-600',
-                        bgClass: 'bg-stone-50 dark:bg-stone-950',
-                        headerBg: 'bg-white/80 dark:bg-stone-900/80',
-                        headerText: 'text-stone-800 dark:text-white',
-                        accentBg: 'bg-purple-600',
-                        heroBg: 'bg-gradient-to-r from-purple-600 via-pink-600 to-rose-600',
-                        buttonClass: 'bg-purple-50 text-purple-700 hover:bg-purple-100 dark:bg-stone-800 dark:text-purple-400',
-                        cardButtonClass: 'bg-purple-50 text-purple-600 hover:bg-purple-600 hover:text-white dark:bg-stone-700 dark:text-purple-400 dark:hover:bg-purple-600 dark:hover:text-white'
-                    },
-                    {
-                        name: 'Dark Charcoal',
-                        dotColor: 'bg-gray-900',
-                        bgClass: 'bg-neutral-900 text-neutral-100',
-                        headerBg: 'bg-neutral-900/90',
+                        bgClass: 'bg-gray-950 text-gray-100',
+                        headerBg: 'bg-gray-900',
                         headerText: 'text-white',
-                        accentBg: 'bg-neutral-700',
-                        heroBg: 'bg-gradient-to-r from-neutral-800 to-neutral-950 border border-neutral-800',
-                        buttonClass: 'bg-neutral-800 text-neutral-200 hover:bg-neutral-700',
-                        cardButtonClass: 'bg-neutral-800 text-neutral-200 hover:bg-white hover:text-neutral-900'
+                        heroBg: 'bg-gradient-to-r from-purple-900 to-slate-900',
+                        accentBg: 'bg-purple-600',
+                        buttonClass: 'bg-purple-900/40 text-purple-300 hover:bg-purple-900/60',
+                        cardButtonClass: 'bg-purple-900/30 text-purple-300 hover:bg-purple-600 hover:text-white'
                     }
                 ],
 
                 get currentTheme() {
-                    return this.themes[this.currentThemeIndex] || this.themes[0];
+                    return this.themes[this.currentThemeIndex];
+                },
+
+                categories: [
+                    'Kluster 1: Manajemen',
+                    'Kluster 2: Ibu & Anak',
+                    'Kluster 3: Usia Dewasa & Lansia',
+                    'Kluster 4: Pencegahan & Penanggulangan Penyakit',
+                    'Lintas Kluster'
+                ],
+
+                links: [
+                    {
+                        id: 1,
+                        title: 'Pendaftaran Pasien Online',
+                        category: 'Kluster 1: Manajemen',
+                        description: 'Sistem antrean dan pendaftaran berobat harian secara mandiri dari rumah.',
+                        url: '#',
+                        icon: '📝',
+                        image: ''
+                    },
+                    {
+                        id: 2,
+                        title: 'Pelayanan KIA & Imunisasi',
+                        category: 'Kluster 2: Ibu & Anak',
+                        description: 'Informasi jadwal posyandu, pemeriksaan ibu hamil, tumbuh kembang anak, dan imunisasi rutin.',
+                        url: '#',
+                        icon: '👶',
+                        image: ''
+                    },
+                    {
+                        id: 3,
+                        title: 'Skrining PTM Usia Dewasa & Lansia',
+                        category: 'Kluster 3: Usia Dewasa & Lansia',
+                        description: 'Pemeriksaan tekanan darah, gula darah, kolesterol, dan deteksi dini penyakit tidak menular.',
+                        url: '#',
+                        icon: '🩺',
+                        image: ''
+                    }
+                ],
+
+                linkForm: { id: null, title: '', category: 'Kluster 1: Manajemen', description: '', url: '', icon: '📌', image: '' },
+
+                init() {
+                    const savedConfig = localStorage.getItem('puskesmas_config');
+                    if (savedConfig) this.config = JSON.parse(savedConfig);
+
+                    const savedLinks = localStorage.getItem('puskesmas_links');
+                    if (savedLinks) this.links = JSON.parse(savedLinks);
+
+                    const savedCats = localStorage.getItem('puskesmas_categories');
+                    if (savedCats) this.categories = JSON.parse(savedCats);
+
+                    const savedTheme = localStorage.getItem('puskesmas_theme');
+                    if (savedTheme !== null) this.currentThemeIndex = parseInt(savedTheme);
+
+                    const savedHeroImg = localStorage.getItem('puskesmas_hero_img');
+                    if (savedHeroImg) this.heroImageUrl = savedHeroImg;
+
+                    this.$nextTick(() => {
+                        this.renderCharts();
+                    });
+                },
+
+                // FUNGSI CETAK LAPORAN (PDF)
+                printReport() {
+                    window.print();
+                },
+
+                // FUNGSI EKSPOR TABEL CAPAIAN KE FILE CSV (EXCEL)
+                exportToCSV() {
+                    let csvContent = "data:text/csv;charset=utf-8,";
+                    csvContent += "No,Indikator Program,Kluster,Target (%),Realisasi (%),Status\n";
+
+                    this.achievements.forEach((item, index) => {
+                        const status = item.realization >= item.target ? "Tercapai" : "Progres";
+                        const row = `"${index + 1}","${item.name}","${item.cluster}","${item.target}","${item.realization}","${status}"`;
+                        csvContent += row + "\n";
+                    });
+
+                    const encodedUri = encodeURI(csvContent);
+                    const link = document.createElement("a");
+                    link.setAttribute("href", encodedUri);
+                    link.setAttribute("download", `Laporan_Capaian_${this.config.appName.replace(/\s+/g, '_')}_2026.csv`);
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                },
+
+                renderCharts() {
+                    const ctxBar = document.getElementById('capaianChart');
+                    if (ctxBar) {
+                        new Chart(ctxBar, {
+                            type: 'bar',
+                            data: {
+                                labels: ['Imunisasi', 'Ibu Hamil K6', 'Skrining PTM', 'Lansia', 'TBC', 'IKM Pasien'],
+                                datasets: [
+                                    {
+                                        label: 'Target (%)',
+                                        data: [95, 90, 80, 85, 90, 85],
+                                        backgroundColor: 'rgba(203, 213, 225, 0.6)',
+                                        borderRadius: 8
+                                    },
+                                    {
+                                        label: 'Realisasi (%)',
+                                        data: [96.2, 93.5, 88.1, 82.0, 91.4, 89.6],
+                                        backgroundColor: 'rgba(16, 185, 129, 0.85)',
+                                        borderRadius: 8
+                                    }
+                                ]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                scales: {
+                                    y: { beginAtZero: true, max: 100 }
+                                }
+                            }
+                        });
+                    }
+
+                    const ctxDoughnut = document.getElementById('klusterChart');
+                    if (ctxDoughnut) {
+                        new Chart(ctxDoughnut, {
+                            type: 'doughnut',
+                            data: {
+                                labels: ['Kluster 1', 'Kluster 2', 'Kluster 3', 'Kluster 4', 'Lintas Kluster'],
+                                datasets: [{
+                                    data: [20, 30, 25, 15, 10],
+                                    backgroundColor: ['#10B981', '#3B82F6', '#F59E0B', '#8B5CF6', '#64748B']
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: { position: 'bottom' }
+                                }
+                            }
+                        });
+                    }
                 },
 
                 loginAdmin() {
-                    if (this.inputPin === this.adminPin) {
+                    if (this.inputPin === 'Sentolo1') {
                         this.isAdmin = true;
                         this.showLoginModal = false;
                         this.inputPin = '';
-                        localStorage.setItem('pkm_is_admin', 'true');
                     } else {
-                        alert('PIN Admin Salah! PIN Bawaan: Sentolo1');
+                        alert('PIN Admin Salah! (Default: Sentolo1)');
                     }
                 },
 
                 logoutAdmin() {
                     this.isAdmin = false;
-                    localStorage.removeItem('pkm_is_admin');
                 },
 
                 setTheme(index) {
                     this.currentThemeIndex = index;
-                    localStorage.setItem('pkm_theme', index);
+                    localStorage.setItem('puskesmas_theme', index);
                 },
 
-                addCategory() {
-                    if (this.newCategoryName.trim()) {
-                        this.categories.push(this.newCategoryName.trim());
-                        this.saveCategories();
-                        this.newCategoryName = '';
-                    }
-                },
-
-                deleteCategory(index) {
-                    if (confirm(`Hapus kategori "${this.categories[index]}"?`)) {
-                        this.categories.splice(index, 1);
-                        this.saveCategories();
-                    }
-                },
-
-                saveCategories() {
-                    localStorage.setItem('pkm_categories_data', JSON.stringify(this.categories));
+                saveConfig() {
+                    localStorage.setItem('puskesmas_config', JSON.stringify(this.config));
                 },
 
                 uploadHeroImage(event) {
@@ -616,7 +918,7 @@
                         const reader = new FileReader();
                         reader.onload = (e) => {
                             this.heroImageUrl = e.target.result;
-                            localStorage.setItem('pkm_hero_image', this.heroImageUrl);
+                            localStorage.setItem('puskesmas_hero_img', this.heroImageUrl);
                         };
                         reader.readAsDataURL(file);
                     }
@@ -624,146 +926,79 @@
 
                 resetHeroImage() {
                     this.heroImageUrl = '';
-                    localStorage.removeItem('pkm_hero_image');
+                    localStorage.removeItem('puskesmas_hero_img');
                 },
 
                 uploadCardImage(event) {
                     const file = event.target.files[0];
                     if (file) {
                         const reader = new FileReader();
-                        reader.onload = (e) => { this.linkForm.image = e.target.result; };
+                        reader.onload = (e) => {
+                            this.linkForm.image = e.target.result;
+                        };
                         reader.readAsDataURL(file);
                     }
                 },
 
-                saveConfig() {
-                    localStorage.setItem('pkm_config', JSON.stringify(this.config));
+                addCategory() {
+                    if (this.newCategoryName.trim()) {
+                        this.categories.push(this.newCategoryName.trim());
+                        this.newCategoryName = '';
+                        this.saveCategories();
+                    }
                 },
 
-                // MEMBUKA MODAL UNTUK TAMBAH BARU
+                saveCategories() {
+                    localStorage.setItem('puskesmas_categories', JSON.stringify(this.categories));
+                },
+
+                deleteCategory(index) {
+                    if (confirm('Hapus kategori ini?')) {
+                        this.categories.splice(index, 1);
+                        this.saveCategories();
+                    }
+                },
+
                 openAddModal() {
                     this.isEditing = false;
-                    this.editingId = null;
-                    this.linkForm = { title: '', category: this.categories[0] || '', description: '', icon: '📋', image: '', url: '' };
+                    this.linkForm = { id: null, title: '', category: this.categories[0] || 'Umum', description: '', url: '', icon: '📌', image: '' };
                     this.showManager = true;
                 },
 
-                // MEMBUKA MODAL UNTUK EDIT DATA YANG ADA
                 openEditModal(item) {
                     this.isEditing = true;
-                    this.editingId = item.id;
-                    this.linkForm = { 
-                        title: item.title, 
-                        category: item.category, 
-                        description: item.description, 
-                        icon: item.icon || '📋', 
-                        image: item.image || '', 
-                        url: item.url 
-                    };
+                    this.linkForm = { ...item };
                     this.showManager = true;
                 },
 
-                // MENYIMPAN DATA (TAMBAH / EDIT)
                 saveLink() {
-                    if (this.isEditing && this.editingId) {
-                        // Proses Update Data
-                        const index = this.links.findIndex(item => item.id === this.editingId);
-                        if (index !== -1) {
-                            this.links[index] = {
-                                id: this.editingId,
-                                title: this.linkForm.title,
-                                category: this.linkForm.category,
-                                description: this.linkForm.description,
-                                icon: this.linkForm.icon || '📋',
-                                image: this.linkForm.image || '',
-                                url: this.linkForm.url
-                            };
-                        }
+                    if (this.isEditing) {
+                        const index = this.links.findIndex(l => l.id === this.linkForm.id);
+                        if (index !== -1) this.links[index] = { ...this.linkForm };
                     } else {
-                        // Proses Tambah Data Baru
-                        const newItem = {
-                            id: Date.now(),
-                            title: this.linkForm.title,
-                            category: this.linkForm.category || (this.categories[0] || 'Umum'),
-                            description: this.linkForm.description,
-                            icon: this.linkForm.icon || '📋',
-                            image: this.linkForm.image || '',
-                            url: this.linkForm.url
-                        };
-                        this.links.unshift(newItem);
+                        this.linkForm.id = Date.now();
+                        this.links.push({ ...this.linkForm });
                     }
-
-                    this.saveLinks();
+                    localStorage.setItem('puskesmas_links', JSON.stringify(this.links));
                     this.showManager = false;
                 },
 
                 deleteLink(id) {
-                    if (confirm('Hapus kegiatan ini?')) {
-                        this.links = this.links.filter(item => item.id !== id);
-                        this.saveLinks();
+                    if (confirm('Apakah Anda yakin ingin menghapus kegiatan/layanan ini?')) {
+                        this.links = this.links.filter(l => l.id !== id);
+                        localStorage.setItem('puskesmas_links', JSON.stringify(this.links));
                     }
-                },
-
-                saveLinks() {
-                    localStorage.setItem('pkm_links_data', JSON.stringify(this.links));
                 },
 
                 get filteredLinks() {
                     return this.links.filter(item => {
-                        const matchesSearch = item.title.toLowerCase().includes(this.searchQuery.toLowerCase()) || 
+                        const matchesCat = (this.selectedCategory === 'Semua' || item.category === this.selectedCategory);
+                        const matchesSearch = item.title.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
                                               item.description.toLowerCase().includes(this.searchQuery.toLowerCase());
-                        const matchesCat = this.selectedCategory === 'Semua' || item.category === this.selectedCategory;
-                        return matchesSearch && matchesCat;
+                        return matchesCat && matchesSearch;
                     });
-                },
-
-                init() {
-                    try {
-                        if (localStorage.getItem('pkm_is_admin') === 'true') this.isAdmin = true;
-
-                        const savedTheme = localStorage.getItem('pkm_theme');
-                        if (savedTheme !== null) this.currentThemeIndex = parseInt(savedTheme);
-
-                        const savedHeroImage = localStorage.getItem('pkm_hero_image');
-                        if (savedHeroImage) this.heroImageUrl = savedHeroImage;
-
-                        const savedConfig = localStorage.getItem('pkm_config');
-                        if (savedConfig) this.config = JSON.parse(savedConfig);
-
-                        const savedCategories = localStorage.getItem('pkm_categories_data');
-                        if (savedCategories) {
-                            this.categories = JSON.parse(savedCategories);
-                        }
-                    } catch(e) {
-                        console.error("Error loading config from localStorage:", e);
-                    }
-
-                    if (!this.categories || !Array.isArray(this.categories) || this.categories.length === 0) {
-                        this.categories = ['Kluster 1 & Manajemen', 'Kluster 2 (Ibu & Anak)', 'Kluster 3 (Usia Produktif)', 'Kluster 4 (Lansia & PTM)', 'Surveilans & Umum'];
-                        this.saveCategories();
-                    }
-                    this.linkForm.category = this.categories[0] || '';
-
-                    try {
-                        const savedLinks = localStorage.getItem('pkm_links_data');
-                        if (savedLinks) {
-                            this.links = JSON.parse(savedLinks);
-                        }
-                    } catch(e) {
-                        console.error("Error loading links from localStorage:", e);
-                        this.links = [];
-                    }
-                    
-                    if (!this.links || !Array.isArray(this.links) || this.links.length === 0) {
-                        this.links = [
-                            { id: 1, title: 'ASPAK', category: 'Kluster 1 & Manajemen', description: 'Aplikasi Sarana, Prasarana, dan Alat Kesehatan Kementerian Kesehatan RI.', icon: '🏥', image: '', url: 'https://aspak.kemkes.go.id' },
-                            { id: 2, title: 'Pendaftaran Pasien Online', category: 'Surveilans & Umum', description: 'Layanan antrean dan pendaftaran berobat harian secara mandiri dari rumah.', icon: '📋', image: '', url: 'https://google.com' },
-                            { id: 3, title: 'Pengembangan Kompetensi Pegawai', category: 'Kluster 1 & Manajemen', description: 'Portal kehadiran, catatan pelatihan, pengembangan kompetensi, dan unduh sertifikat staf.', icon: '🎓', image: '', url: 'https://google.com' }
-                        ];
-                        this.saveLinks();
-                    }
                 }
-            }
+            };
         }
     </script>
 </body>
