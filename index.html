@@ -32,7 +32,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 
     <style>
-        /* BASE STYLE */
         body { transition: background 0.5s ease, color 0.5s ease; min-height: 100vh; background-attachment: fixed; }
         .glass-panel {
             background: rgba(255, 255, 255, 0.75);
@@ -44,7 +43,6 @@
         .card-app { transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); }
         .card-app:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
 
-        /* Menyembunyikan Scrollbar Navigasi Kluster */
         .hide-scroll::-webkit-scrollbar { display: none; }
         .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
 
@@ -62,7 +60,6 @@
         body.theme-dark { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color: #f8fafc; }
         body.theme-cyberpunk { background: linear-gradient(135deg, #09090b 0%, #581c87 50%, #be185d 100%); color: #00f0ff; }
 
-        /* Penyesuaian Glass Panel di Tema Gelap */
         body.theme-ocean .glass-panel, body.theme-dark .glass-panel, body.theme-royal .glass-panel, body.theme-cyberpunk .glass-panel, body.theme-emerald .glass-panel, body.theme-sunset .glass-panel, body.theme-lavender .glass-panel {
             background: rgba(15, 23, 42, 0.75);
             border-color: rgba(255, 255, 255, 0.15);
@@ -75,7 +72,7 @@
     <!-- HEADER NAVBAR -->
     <header class="glass-panel sticky top-4 z-50 mx-4 md:mx-8 mt-4 rounded-3xl px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
         <div class="flex items-center gap-4 w-full md:w-auto">
-            <!-- Logo dengan Fitur Ganti Foto Langsung -->
+            <!-- Logo Puskesmas -->
             <div class="relative group w-14 h-14 rounded-2xl bg-white p-1 shadow-md flex-shrink-0 cursor-pointer overflow-hidden" title="Klik untuk ganti logo Puskesmas" onclick="triggerLogoUpload()">
                 <img id="main-logo" src="https://images.unsplash.com/photo-1584515933487-779824d29309?w=200" alt="Logo" class="w-full h-full object-cover rounded-xl">
                 <div class="absolute inset-0 bg-black/50 hidden group-hover:flex items-center justify-center text-white text-xs font-bold rounded-xl">
@@ -86,17 +83,20 @@
 
             <div>
                 <div class="flex items-center gap-2">
-                    <h1 class="text-xl md:text-2xl font-extrabold tracking-tight">Portal Puskesmas</h1>
+                    <h1 id="app-title-text" class="text-xl md:text-2xl font-extrabold tracking-tight">Portal Puskesmas</h1>
+                    <button id="btn-edit-header" onclick="openHeaderModal()" class="hidden text-slate-500 hover:text-brand-500 text-xs p-1" title="Edit Teks Header">
+                        <i class="fa-solid fa-pen"></i>
+                    </button>
                     <span id="sync-status" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700 flex items-center gap-1">
                         <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Realtime Sync
                     </span>
                 </div>
-                <p class="text-xs md:text-sm font-medium opacity-80">Wadah Aplikasi & Data Terpadu Seluruh Kluster</p>
+                <p id="app-subtitle-text" class="text-xs md:text-sm font-medium opacity-80">Wadah Aplikasi & Data Terpadu Seluruh Kluster</p>
             </div>
         </div>
         
         <div class="w-full md:w-auto flex flex-wrap items-center justify-end gap-3">
-            <!-- SELECTOR >10 TEMA VISUAL -->
+            <!-- SELECTOR TEMA -->
             <div class="flex items-center gap-2 glass-panel px-3 py-1.5 rounded-full">
                 <i class="fa-solid fa-palette text-xs"></i>
                 <select id="theme-selector" onchange="changeTheme(this.value)" class="bg-transparent text-xs font-bold focus:outline-none cursor-pointer">
@@ -142,7 +142,74 @@
         <div id="apps-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
     </main>
 
-    <!-- MODAL FORM APLIKASI (BISA UNGGAH FOTO LANGSUNG) -->
+    <!-- MODAL EDIT PORTAL HEADER & TEKS UMUM -->
+    <div id="header-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onclick="closeHeaderModal()"></div>
+        <div class="glass-panel bg-white/95 text-slate-800 w-full max-w-lg rounded-3xl p-6 md:p-8 relative z-10 shadow-2xl">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-slate-800">Edit Judul & Teks Aplikasi</h3>
+                <button onclick="closeHeaderModal()" class="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 hover:bg-rose-100 text-slate-500 hover:text-rose-600 transition-colors">
+                    <i class="fa-solid fa-times"></i>
+                </button>
+            </div>
+            
+            <form onsubmit="saveHeaderInfo(event)" class="flex flex-col gap-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Judul Utama Portal</label>
+                    <input type="text" id="input-app-name" required class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 focus:outline-none text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Sub-Judul / Slogan</label>
+                    <input type="text" id="input-app-subtitle" required class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 focus:outline-none text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Judul Bagian Daftar Aplikasi</label>
+                    <input type="text" id="input-grid-title" required class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 focus:outline-none text-sm">
+                </div>
+                <button type="submit" class="mt-2 w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 rounded-xl shadow-lg transition-colors">
+                    Simpan Perubahan Teks
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL EDIT KLUSTER & BANNER HERO -->
+    <div id="hero-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onclick="closeHeroModal()"></div>
+        <div class="glass-panel bg-white/95 text-slate-800 w-full max-w-lg rounded-3xl p-6 md:p-8 relative z-10 shadow-2xl">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-slate-800">Edit Info & Banner Kluster</h3>
+                <button onclick="closeHeroModal()" class="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 hover:bg-rose-100 text-slate-500 hover:text-rose-600 transition-colors">
+                    <i class="fa-solid fa-times"></i>
+                </button>
+            </div>
+            
+            <form onsubmit="saveHeroInfo(event)" class="flex flex-col gap-4">
+                <input type="hidden" id="hero-banner-base64">
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Nama Kluster</label>
+                    <input type="text" id="input-hero-title" required class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 focus:outline-none text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Deskripsi Kluster</label>
+                    <textarea id="input-hero-desc" rows="3" required class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 focus:outline-none text-sm"></textarea>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Ganti Foto Banner Kluster</label>
+                    <input type="file" id="hero-file-input" accept="image/*" onchange="convertHeroBannerToBase64(event)" class="w-full text-xs text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-brand-50 file:text-brand-600 hover:file:bg-brand-100 border border-slate-200 rounded-xl cursor-pointer bg-white">
+                </div>
+                <div id="hero-preview-container" class="hidden w-full h-32 rounded-xl overflow-hidden border border-slate-200 relative">
+                    <img id="hero-preview" src="" class="w-full h-full object-cover">
+                    <span class="absolute bottom-2 left-2 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded">Pratinjau Banner</span>
+                </div>
+                <button type="submit" class="mt-2 w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 rounded-xl shadow-lg transition-colors">
+                    Simpan Perubahan Kluster
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL FORM APLIKASI -->
     <div id="app-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onclick="closeAppModal()"></div>
         <div class="glass-panel bg-white/95 text-slate-800 w-full max-w-lg rounded-3xl p-6 md:p-8 relative z-10 shadow-2xl">
@@ -161,30 +228,22 @@
                     <label class="block text-xs font-bold text-slate-600 mb-1">Nama Aplikasi / File</label>
                     <input type="text" id="app-name" required placeholder="Cth: SIMPUS Antrean, Drive Foto" class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 focus:outline-none text-sm">
                 </div>
-                
                 <div>
                     <label class="block text-xs font-bold text-slate-600 mb-1">URL / Link Tujuan</label>
                     <input type="url" id="app-url" required placeholder="https://..." class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 focus:outline-none text-sm">
                 </div>
-                
-                <!-- UNGGAH GAMBAR LANGSUNG -->
                 <div>
-                    <label class="block text-xs font-bold text-slate-600 mb-1">Pilih Gambar Sampul (Pilih File Langsung)</label>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Pilih Gambar Sampul</label>
                     <input type="file" id="app-file-input" accept="image/*" onchange="convertImageToBase64(event)" class="w-full text-xs text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-brand-50 file:text-brand-600 hover:file:bg-brand-100 border border-slate-200 rounded-xl cursor-pointer bg-white">
-                    <p class="text-[10px] text-slate-400 mt-1">Unggah foto dari galeri HP/Komputer (otomatis dikompres secara efisien).</p>
                 </div>
-
-                <!-- PRATINJAU GAMBAR -->
                 <div id="image-preview-container" class="hidden w-full h-32 rounded-xl overflow-hidden border border-slate-200 relative">
                     <img id="image-preview" src="" class="w-full h-full object-cover">
                     <span class="absolute bottom-2 left-2 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded">Pratinjau Foto</span>
                 </div>
-                
                 <div>
                     <label class="block text-xs font-bold text-slate-600 mb-1">Deskripsi Singkat</label>
                     <textarea id="app-desc" rows="2" placeholder="Sistem pelaporan..." class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 focus:outline-none text-sm"></textarea>
                 </div>
-                
                 <button type="submit" class="mt-2 w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 rounded-xl shadow-lg transition-colors">
                     Simpan Data
                 </button>
@@ -198,7 +257,6 @@
 
     <!-- JAVASCRIPT LOGIC -->
     <script>
-        // PERBAIKAN: Menambahkan tanda koma (,) di akhir appId agar tidak SyntaxError
         const firebaseConfig = {
             apiKey: "AIzaSyCk6Rnh90zX1xy73fPq6tBJydU-4t8i_tw",
             authDomain: "portal-puskesmas.firebaseapp.com",
@@ -225,6 +283,9 @@
 
         const defaultData = {
             logoUrl: "https://images.unsplash.com/photo-1584515933487-779824d29309?w=200",
+            appName: "Portal Puskesmas",
+            appSubtitle: "Wadah Aplikasi & Data Terpadu Seluruh Kluster",
+            gridTitle: "Daftar Aplikasi & File",
             activeTheme: "theme-rainbow",
             kluster1: { title: "Kluster 1: Manajemen", color: "from-blue-500 to-cyan-400", heroImg: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800", desc: "Pusat berkas manajemen, perencanaan, lokmin bulanan, dan laporan keuangan BOK.", apps: [] },
             kluster2: { title: "Kluster 2: Ibu & Anak", color: "from-pink-500 to-rose-400", heroImg: "https://images.unsplash.com/photo-1519689680058-324335c77eba?w=800", desc: "Pusat aplikasi registrasi KIA, pemantauan stunting, dan jadwal imunisasi.", apps: [] },
@@ -241,6 +302,7 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             loadThemeSetting();
+            renderHeaderTexts();
             renderTabs();
             renderDashboard();
 
@@ -250,10 +312,11 @@
                     if (data) db = data;
                     if (db.logoUrl) document.getElementById('main-logo').src = db.logoUrl;
                     if (db.activeTheme) changeTheme(db.activeTheme, false);
+                    renderHeaderTexts();
                     renderTabs();
                     renderDashboard();
                 }, (error) => {
-                    console.warn("Firebase Read Error, fallback ke LocalStorage", error);
+                    console.warn("Firebase Read Error", error);
                     loadFromLocalStorage();
                 });
             } else {
@@ -266,6 +329,7 @@
             if (savedData) db = JSON.parse(savedData);
             if (db.logoUrl) document.getElementById('main-logo').src = db.logoUrl;
             if (db.activeTheme) changeTheme(db.activeTheme, false);
+            renderHeaderTexts();
             renderTabs();
             renderDashboard();
         }
@@ -282,7 +346,13 @@
             }
         }
 
-        // TEMA SWITCHER (>10 TEMA)
+        function renderHeaderTexts() {
+            document.getElementById('app-title-text').innerText = db.appName || "Portal Puskesmas";
+            document.getElementById('app-subtitle-text').innerText = db.appSubtitle || "Wadah Aplikasi & Data Terpadu Seluruh Kluster";
+            document.getElementById('grid-title').innerText = db.gridTitle || "Daftar Aplikasi & File";
+            document.getElementById('btn-edit-header').style.display = isAdmin ? 'inline-block' : 'none';
+        }
+
         function changeTheme(themeClass, isSave = true) {
             document.body.className = `${themeClass} min-h-screen relative overflow-x-hidden`;
             const selector = document.getElementById('theme-selector');
@@ -296,7 +366,6 @@
             changeTheme(currentTheme, false);
         }
 
-        // UNGGAH LOGO LANGSUNG DENGAN KOMPRESI
         function triggerLogoUpload() {
             if (!isAdmin) {
                 Swal.fire({ icon: 'info', title: 'Fitur Admin', text: 'Silakan Login Admin terlebih dahulu untuk mengganti logo.' });
@@ -317,7 +386,76 @@
             });
         }
 
-        // UNGGAH GAMBAR SAMPUL APLIKASI LANGSUNG DENGAN KOMPRESI AUTOMATIS
+        // CONTROL HEADER TEXTS
+        function openHeaderModal() {
+            document.getElementById('input-app-name').value = db.appName || "Portal Puskesmas";
+            document.getElementById('input-app-subtitle').value = db.appSubtitle || "Wadah Aplikasi & Data Terpadu Seluruh Kluster";
+            document.getElementById('input-grid-title').value = db.gridTitle || "Daftar Aplikasi & File";
+            document.getElementById('header-modal').classList.remove('hidden');
+        }
+
+        function closeHeaderModal() {
+            document.getElementById('header-modal').classList.add('hidden');
+        }
+
+        function saveHeaderInfo(e) {
+            e.preventDefault();
+            db.appName = document.getElementById('input-app-name').value;
+            db.appSubtitle = document.getElementById('input-app-subtitle').value;
+            db.gridTitle = document.getElementById('input-grid-title').value;
+            
+            saveToCloud();
+            renderHeaderTexts();
+            closeHeaderModal();
+            Swal.fire({ icon: 'success', title: 'Teks Header Diperbarui!', toast: true, position: 'top-end', timer: 1500, showConfirmButton: false });
+        }
+
+        // CONTROL HERO BANNER & KLUSTER INFO
+        function openHeroModal() {
+            const data = db[currentKluster] || defaultData[currentKluster];
+            document.getElementById('input-hero-title').value = data.title;
+            document.getElementById('input-hero-desc').value = data.desc;
+            document.getElementById('hero-banner-base64').value = '';
+            document.getElementById('hero-preview-container').classList.add('hidden');
+            document.getElementById('hero-modal').classList.remove('hidden');
+        }
+
+        function closeHeroModal() {
+            document.getElementById('hero-modal').classList.add('hidden');
+        }
+
+        function convertHeroBannerToBase64(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            compressImage(file, 1200, 600, 0.8, (base64String) => {
+                document.getElementById('hero-banner-base64').value = base64String;
+                document.getElementById('hero-preview').src = base64String;
+                document.getElementById('hero-preview-container').classList.remove('hidden');
+            });
+        }
+
+        function saveHeroInfo(e) {
+            e.preventDefault();
+            const newTitle = document.getElementById('input-hero-title').value;
+            const newDesc = document.getElementById('input-hero-desc').value;
+            const newImgBase64 = document.getElementById('hero-banner-base64').value;
+
+            if (!db[currentKluster]) db[currentKluster] = defaultData[currentKluster];
+            
+            db[currentKluster].title = newTitle;
+            db[currentKluster].desc = newDesc;
+            if (newImgBase64) {
+                db[currentKluster].heroImg = newImgBase64;
+            }
+
+            saveToCloud();
+            renderTabs();
+            renderDashboard();
+            closeHeroModal();
+            Swal.fire({ icon: 'success', title: 'Info Kluster Diperbarui!', toast: true, position: 'top-end', timer: 1500, showConfirmButton: false });
+        }
+
         function convertImageToBase64(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -329,7 +467,6 @@
             });
         }
 
-        // FUNGSI UTILITY: KOMPRESI GAMBAR SECARA OTOMATIS
         function compressImage(file, maxWidth, maxHeight, quality, callback) {
             const reader = new FileReader();
             reader.onload = function(e) {
@@ -363,7 +500,6 @@
             reader.readAsDataURL(file);
         }
 
-        // RENDER TABS & DASHBOARD
         function renderTabs() {
             const container = document.getElementById('cluster-tabs');
             if (!container) return;
@@ -394,7 +530,14 @@
             
             const hero = document.getElementById('cluster-hero');
             if (hero) {
+                let editHeroBtn = isAdmin 
+                    ? `<button onclick="openHeroModal()" class="absolute top-4 right-4 z-20 bg-white/80 hover:bg-white text-slate-800 text-xs font-bold px-3 py-1.5 rounded-xl shadow border border-white/50 backdrop-blur-sm transition-all flex items-center gap-1.5">
+                        <i class="fa-solid fa-pen"></i> Edit Banner & Teks Kluster
+                      </button>`
+                    : '';
+
                 hero.innerHTML = `
+                    ${editHeroBtn}
                     <div class="absolute inset-0 z-0">
                         <div class="absolute inset-0 bg-gradient-to-r ${data.color} opacity-85 mix-blend-multiply"></div>
                         <img src="${data.heroImg}" alt="Banner" class="w-full h-full object-cover">
@@ -465,12 +608,13 @@
             if (isAdmin) {
                 isAdmin = false;
                 updateAdminUI();
+                renderHeaderTexts();
                 renderDashboard();
                 Swal.fire('Logout Berhasil', '', 'success');
             } else {
                 Swal.fire({
                     title: 'Akses Admin',
-                    text: 'Masukkan Kata Sandi Admin:',
+                    text: 'Masukkan Kata Sandi Admin :',
                     input: 'password',
                     showCancelButton: true,
                     confirmButtonText: 'Masuk',
@@ -479,6 +623,7 @@
                     if (result.isConfirmed && result.value === ADMIN_PASS) {
                         isAdmin = true;
                         updateAdminUI();
+                        renderHeaderTexts();
                         renderDashboard();
                         Swal.fire({ icon: 'success', title: 'Mode Admin Aktif', showConfirmButton: false, timer: 1500 });
                     } else if (result.isConfirmed) {
