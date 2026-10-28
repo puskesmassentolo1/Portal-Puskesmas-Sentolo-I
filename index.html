@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal Aplikasi Puskesmas Realtime</title>
+    <title>Portal Aplikasi Puskesmas</title>
     
-    <!-- Google Fonts: Poppins -->
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
     <!-- Tailwind CSS CDN -->
@@ -17,19 +17,6 @@
             fontFamily: { sans: ['Poppins', 'sans-serif'] },
             colors: {
               brand: { 50: '#f0f9ff', 100: '#e0f2fe', 500: '#0ea5e9', 600: '#0284c7', 900: '#0c4a6e' }
-            },
-            animation: { 'blob': 'blob 7s infinite', 'fade-in': 'fadeIn 0.5s ease-out' },
-            keyframes: {
-              blob: {
-                '0%': { transform: 'translate(0px, 0px) scale(1)' },
-                '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
-                '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
-                '100%': { transform: 'translate(0px, 0px) scale(1)' },
-              },
-              fadeIn: {
-                '0%': { opacity: '0', transform: 'translateY(10px)' },
-                '100%': { opacity: '1', transform: 'translateY(0)' },
-              }
             }
           }
         }
@@ -40,71 +27,92 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <!-- Firebase SDK (Compat Version untuk Single File HTML) -->
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 
     <style>
-        body {
-            background-color: #e0f2fe;
-            background-image: 
-                radial-gradient(at 40% 20%, hsla(28,100%,74%,1) 0px, transparent 50%),
-                radial-gradient(at 80% 0%, hsla(189,100%,56%,1) 0px, transparent 50%),
-                radial-gradient(at 0% 50%, hsla(355,100%,93%,1) 0px, transparent 50%),
-                radial-gradient(at 80% 50%, hsla(340,100%,76%,1) 0px, transparent 50%),
-                radial-gradient(at 0% 100%, hsla(22,100%,77%,1) 0px, transparent 50%),
-                radial-gradient(at 80% 100%, hsla(242,100%,70%,1) 0px, transparent 50%),
-                radial-gradient(at 0% 0%, hsla(343,100%,76%,1) 0px, transparent 50%);
-            background-attachment: fixed;
-            color: #1e293b;
-        }
+        /* BASE STYLE */
+        body { transition: background 0.5s ease, color 0.5s ease; min-h-screen: 100vh; background-attachment: fixed; }
         .glass-panel {
-            background: rgba(255, 255, 255, 0.7);
+            background: rgba(255, 255, 255, 0.75);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.6);
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
         }
-        .card-app {
-            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        .card-app { transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); }
+        .card-app:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
+
+        /* PRESET 12 TEMA TAMPILAN */
+        body.theme-rainbow { background: radial-gradient(at 40% 20%, #fde68a 0px, transparent 50%), radial-gradient(at 80% 0%, #7dd3fc 0px, transparent 50%), radial-gradient(at 0% 50%, #fbcfe8 0px, transparent 50%), radial-gradient(at 80% 50%, #f472b6 0px, transparent 50%), radial-gradient(at 0% 100%, #fdba74 0px, transparent 50%), radial-gradient(at 80% 100%, #a78bfa 0px, transparent 50%); background-color: #e0f2fe; color: #1e293b; }
+        body.theme-ocean { background: linear-gradient(135deg, #0284c7 0%, #0369a1 50%, #0f172a 100%); color: #f8fafc; }
+        body.theme-emerald { background: linear-gradient(135deg, #059669 0%, #047857 50%, #064e3b 100%); color: #f8fafc; }
+        body.theme-sunset { background: linear-gradient(135deg, #f97316 0%, #db2777 50%, #4c1d95 100%); color: #f8fafc; }
+        body.theme-lavender { background: linear-gradient(135deg, #c084fc 0%, #a855f7 50%, #3b0764 100%); color: #f8fafc; }
+        body.theme-mint { background: linear-gradient(135deg, #a7f3d0 0%, #6ee7b7 50%, #047857 100%); color: #064e3b; }
+        body.theme-sunshine { background: linear-gradient(135deg, #fef08a 0%, #fde047 50%, #ca8a04 100%); color: #451a03; }
+        body.theme-rose { background: linear-gradient(135deg, #f472b6 0%, #fb7185 50%, #881337 100%); color: #f8fafc; }
+        body.theme-royal { background: linear-gradient(135deg, #1e40af 0%, #1e1b4b 100%); color: #f8fafc; }
+        body.theme-slate { background: linear-gradient(135deg, #e2e8f0 0%, #94a3b8 100%); color: #0f172a; }
+        body.theme-dark { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color: #f8fafc; }
+        body.theme-cyberpunk { background: linear-gradient(135deg, #09090b 0%, #581c87 50%, #be185d 100%); color: #00f0ff; }
+
+        /* Penyesuaian Glass Panel di Tema Gelap */
+        body.theme-ocean .glass-panel, body.theme-dark .glass-panel, body.theme-royal .glass-panel, body.theme-cyberpunk .glass-panel, body.theme-emerald .glass-panel, body.theme-sunset .glass-panel, body.theme-lavender .glass-panel {
+            background: rgba(15, 23, 42, 0.75);
+            border-color: rgba(255, 255, 255, 0.15);
+            color: #f8fafc;
         }
-        .card-app:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.12);
-        }
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: rgba(255,255,255,0.2); }
-        ::-webkit-scrollbar-thumb { background: rgba(14, 165, 233, 0.5); border-radius: 10px; }
     </style>
 </head>
-<body class="min-h-screen relative overflow-x-hidden">
-
-    <!-- Efek Latar Belakang Animasi -->
-    <div class="fixed top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
-        <div class="absolute top-0 -left-4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-2xl opacity-50 animate-blob"></div>
-        <div class="absolute top-0 -right-4 w-72 h-72 bg-yellow-300 rounded-full mix-blend-multiply filter blur-2xl opacity-50 animate-blob"></div>
-        <div class="absolute -bottom-8 left-20 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-2xl opacity-50 animate-blob"></div>
-    </div>
+<body class="theme-rainbow min-h-screen relative overflow-x-hidden">
 
     <!-- HEADER NAVBAR -->
     <header class="glass-panel sticky top-4 z-50 mx-4 md:mx-8 mt-4 rounded-3xl px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
         <div class="flex items-center gap-4 w-full md:w-auto">
-            <div class="w-14 h-14 rounded-2xl bg-white p-1 shadow-md flex-shrink-0">
+            <!-- Logo dengan Fitur Ganti Foto Langsung -->
+            <div class="relative group w-14 h-14 rounded-2xl bg-white p-1 shadow-md flex-shrink-0 cursor-pointer overflow-hidden" title="Klik untuk ganti logo Puskesmas" onclick="triggerLogoUpload()">
                 <img id="main-logo" src="https://images.unsplash.com/photo-1584515933487-779824d29309?w=200" alt="Logo" class="w-full h-full object-cover rounded-xl">
+                <div class="absolute inset-0 bg-black/50 hidden group-hover:flex items-center justify-center text-white text-xs font-bold rounded-xl">
+                    <i class="fa-solid fa-camera"></i>
+                </div>
+                <input type="file" id="logo-file-input" class="hidden" accept="image/*" onchange="uploadLogoDirectly(event)">
             </div>
+
             <div>
                 <div class="flex items-center gap-2">
-                    <h1 class="text-xl md:text-2xl font-extrabold text-slate-800 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">Portal Puskesmas</h1>
+                    <h1 class="text-xl md:text-2xl font-extrabold tracking-tight">Portal Puskesmas</h1>
                     <span id="sync-status" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700 flex items-center gap-1">
                         <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Realtime Sync
                     </span>
                 </div>
-                <p class="text-xs md:text-sm font-medium text-slate-500">Wadah Aplikasi & Data Terpadu Seluruh Kluster</p>
+                <p class="text-xs md:text-sm font-medium opacity-80">Wadah Aplikasi & Data Terpadu Seluruh Kluster</p>
             </div>
         </div>
         
-        <div class="w-full md:w-auto flex justify-end">
-            <button id="btn-admin-auth" onclick="toggleAdmin()" class="glass-panel hover:bg-white px-5 py-2.5 rounded-full text-sm font-bold text-brand-600 transition-all shadow-sm flex items-center gap-2">
+        <div class="w-full md:w-auto flex flex-wrap items-center justify-end gap-3">
+            <!-- SELECTOR >10 TEMA VISUAL -->
+            <div class="flex items-center gap-2 glass-panel px-3 py-1.5 rounded-full">
+                <i class="fa-solid fa-palette text-xs"></i>
+                <select id="theme-selector" onchange="changeTheme(this.value)" class="bg-transparent text-xs font-bold focus:outline-none cursor-pointer">
+                    <option value="theme-rainbow" class="text-slate-800">1. Pelangi Pastel (Default)</option>
+                    <option value="theme-ocean" class="text-slate-800">2. Ocean Blue</option>
+                    <option value="theme-emerald" class="text-slate-800">3. Kemenkes Emerald</option>
+                    <option value="theme-sunset" class="text-slate-800">4. Sunset Glow</option>
+                    <option value="theme-lavender" class="text-slate-800">5. Purple Lavender</option>
+                    <option value="theme-mint" class="text-slate-800">6. Fresh Mint</option>
+                    <option value="theme-sunshine" class="text-slate-800">7. Warm Sunshine</option>
+                    <option value="theme-rose" class="text-slate-800">8. Rose Pink</option>
+                    <option value="theme-royal" class="text-slate-800">9. Royal Navy</option>
+                    <option value="theme-slate" class="text-slate-800">10. Minimal Slate</option>
+                    <option value="theme-dark" class="text-slate-800">11. Dark Mode</option>
+                    <option value="theme-cyberpunk" class="text-slate-800">12. Cyberpunk Neon</option>
+                </select>
+            </div>
+
+            <!-- TOMBOL LOGIN ADMIN -->
+            <button id="btn-admin-auth" onclick="toggleAdmin()" class="glass-panel hover:bg-white/90 px-5 py-2.5 rounded-full text-sm font-bold text-brand-600 transition-all shadow-sm flex items-center gap-2">
                 <i class="fa-solid fa-user-lock"></i> <span>Login Admin</span>
             </button>
         </div>
@@ -112,30 +120,28 @@
 
     <!-- KONTEN UTAMA -->
     <main class="max-w-7xl mx-auto px-4 md:px-8 py-8 w-full">
-        
         <!-- Tab Navigasi Kluster -->
         <div class="flex overflow-x-auto pb-4 pt-2 gap-3 hide-scroll mb-8" id="cluster-tabs"></div>
 
         <!-- Banner Hero Kluster -->
-        <div class="glass-panel rounded-3xl p-6 md:p-8 mb-8 flex flex-col md:flex-row items-center gap-6 relative overflow-hidden animate-fade-in" id="cluster-hero"></div>
+        <div class="glass-panel rounded-3xl p-6 md:p-8 mb-8 flex flex-col md:flex-row items-center gap-6 relative overflow-hidden" id="cluster-hero"></div>
 
         <!-- Grid Header -->
         <div class="flex justify-between items-end mb-6">
-            <h2 class="text-2xl font-bold text-slate-800" id="grid-title">Daftar Aplikasi & File</h2>
+            <h2 class="text-2xl font-bold" id="grid-title">Daftar Aplikasi & File</h2>
             <button id="btn-add-app" onclick="openAppModal()" class="hidden bg-gradient-to-r from-brand-500 to-blue-600 hover:from-brand-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-blue-500/30 transition-all transform hover:scale-105 flex items-center gap-2">
                 <i class="fa-solid fa-plus-circle text-lg"></i> Tambah Baru
             </button>
         </div>
 
         <!-- GRID APLIKASI -->
-        <div id="apps-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-fade-in"></div>
-
+        <div id="apps-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
     </main>
 
-    <!-- MODAL FORM APLIKASI -->
+    <!-- MODAL FORM APLIKASI (BISA UNGGAH FOTO LANGSUNG) -->
     <div id="app-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onclick="closeAppModal()"></div>
-        <div class="glass-panel bg-white/90 w-full max-w-lg rounded-3xl p-6 md:p-8 relative z-10 shadow-2xl">
+        <div class="glass-panel bg-white/95 text-slate-800 w-full max-w-lg rounded-3xl p-6 md:p-8 relative z-10 shadow-2xl">
             <div class="flex justify-between items-center mb-6">
                 <h3 id="modal-title" class="text-xl font-bold text-slate-800">Tambah Tautan / Aplikasi Baru</h3>
                 <button onclick="closeAppModal()" class="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 hover:bg-rose-100 text-slate-500 hover:text-rose-600 transition-colors">
@@ -145,44 +151,49 @@
             
             <form id="app-form" onsubmit="saveApp(event)" class="flex flex-col gap-4">
                 <input type="hidden" id="app-id">
+                <input type="hidden" id="app-image-base64">
                 
                 <div>
                     <label class="block text-xs font-bold text-slate-600 mb-1">Nama Aplikasi / File</label>
-                    <input type="text" id="app-name" required placeholder="Cth: SIMPUS Antrean, Google Drive Foto" class="w-full px-4 py-3 bg-white/80 border border-white/50 rounded-xl focus:ring-2 focus:ring-brand-500 focus:outline-none text-sm">
+                    <input type="text" id="app-name" required placeholder="Cth: SIMPUS Antrean, Drive Foto" class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 focus:outline-none text-sm">
                 </div>
                 
                 <div>
                     <label class="block text-xs font-bold text-slate-600 mb-1">URL / Link Tujuan</label>
-                    <input type="url" id="app-url" required placeholder="https://..." class="w-full px-4 py-3 bg-white/80 border border-white/50 rounded-xl focus:ring-2 focus:ring-brand-500 focus:outline-none text-sm">
+                    <input type="url" id="app-url" required placeholder="https://..." class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 focus:outline-none text-sm">
                 </div>
                 
+                <!-- UNGGAH GAMBAR LANGSUNG -->
                 <div>
-                    <label class="block text-xs font-bold text-slate-600 mb-1">URL Gambar Sampul (Opsional)</label>
-                    <input type="url" id="app-image" placeholder="https://... (Biarkan kosong untuk gambar otomatis)" class="w-full px-4 py-3 bg-white/80 border border-white/50 rounded-xl focus:ring-2 focus:ring-brand-500 focus:outline-none text-sm">
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Pilih Gambar Sampul (Pilih File Langsung)</label>
+                    <input type="file" id="app-file-input" accept="image/*" onchange="convertImageToBase64(event)" class="w-full text-xs text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-brand-50 file:text-brand-600 hover:file:bg-brand-100 border border-slate-200 rounded-xl cursor-pointer bg-white">
+                    <p class="text-[10px] text-slate-400 mt-1">Unggah langsung foto dari galeri HP / Komputer tanpa perlu copy URL link.</p>
+                </div>
+
+                <!-- PRATINJAU GAMBAR -->
+                <div id="image-preview-container" class="hidden w-full h-32 rounded-xl overflow-hidden border border-slate-200 relative">
+                    <img id="image-preview" src="" class="w-full h-full object-cover">
+                    <span class="absolute bottom-2 left-2 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded">Pratinjau Foto</span>
                 </div>
                 
                 <div>
                     <label class="block text-xs font-bold text-slate-600 mb-1">Deskripsi Singkat</label>
-                    <textarea id="app-desc" rows="2" placeholder="Sistem pelaporan..." class="w-full px-4 py-3 bg-white/80 border border-white/50 rounded-xl focus:ring-2 focus:ring-brand-500 focus:outline-none text-sm"></textarea>
+                    <textarea id="app-desc" rows="2" placeholder="Sistem pelaporan..." class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 focus:outline-none text-sm"></textarea>
                 </div>
                 
                 <button type="submit" class="mt-2 w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 rounded-xl shadow-lg transition-colors">
-                    Simpan ke Server Cloud
+                    Simpan Data
                 </button>
             </form>
         </div>
     </div>
 
-    <footer class="mt-12 mb-6 text-center text-xs font-medium text-slate-500">
-        &copy; 2026 Portal Aplikasi Puskesmas. Tersinkronisasi Realtime via Cloud Database.
+    <footer class="mt-12 mb-6 text-center text-xs font-medium opacity-60">
+        &copy; 2026 Portal Aplikasi Puskesmas. Terintegrasi Cloud & Multi-Tema.
     </footer>
 
-    <!-- LOGIKA JAVASCRIPT & FIREBASE SINKRONISASI -->
+    <!-- JAVASCRIPT LOGIC -->
     <script>
-        // ==========================================
-        // 1. KONFIGURASI FIREBASE CLOUD DATABASE
-        // Ganti nilai berikut dengan milik Anda dari Firebase Console
-        // ==========================================
         const firebaseConfig = {
             apiKey: "PASTE_API_KEY_DI_SINI",
             authDomain: "PASTE_AUTH_DOMAIN_DI_SINI",
@@ -193,7 +204,6 @@
             appId: "PASTE_APP_ID_DI_SINI"
         };
 
-        // Inisialisasi Firebase
         let database = null;
         let isFirebaseConnected = false;
 
@@ -204,94 +214,44 @@
                 isFirebaseConnected = true;
             }
         } catch (e) {
-            console.warn("Firebase belum dikonfigurasi. Menggunakan penyimpanan lokal sementara.");
+            console.warn("Menggunakan penyimpanan lokal.");
         }
 
-        // ==========================================
-        // 2. INITIAL SEED DATA
-        // ==========================================
         const defaultData = {
-            kluster1: {
-                title: "Kluster 1: Manajemen",
-                color: "from-blue-500 to-cyan-400",
-                heroImg: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800",
-                desc: "Pusat berkas manajemen, perencanaan, lokmin bulanan, dan laporan keuangan BOK.",
-                apps: [
-                    { id: "1_1", name: "Portal SIMPUS Utama", url: "https://simpus.kemkes.go.id", img: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=500", desc: "Aplikasi pencatatan elektronik harian pasien." },
-                    { id: "1_2", name: "Drive Dokumen RUK/RPK", url: "https://drive.google.com", img: "https://images.unsplash.com/photo-1618044733300-9472054094ee?w=500", desc: "Folder Google Drive untuk rencana usulan kegiatan." }
-                ]
-            },
-            kluster2: {
-                title: "Kluster 2: Ibu & Anak",
-                color: "from-pink-500 to-rose-400",
-                heroImg: "https://images.unsplash.com/photo-1519689680058-324335c77eba?w=800",
-                desc: "Pusat aplikasi registrasi KIA, pemantauan stunting, dan jadwal imunisasi.",
-                apps: [
-                    { id: "2_1", name: "Form Pelaporan Stunting", url: "#", img: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=500", desc: "Input data gizi dan stunting per desa." }
-                ]
-            },
-            kluster3: {
-                title: "Kluster 3: Dewasa & Lansia",
-                color: "from-emerald-500 to-teal-400",
-                heroImg: "https://images.unsplash.com/photo-1511895426328-dc8714191300?w=800",
-                desc: "Wadah pendataan usia produktif, posbindu, dan skrining penyakit tidak menular.",
-                apps: []
-            },
-            kluster4: {
-                title: "Kluster 4: P2P",
-                color: "from-purple-500 to-indigo-400",
-                heroImg: "https://images.unsplash.com/photo-1584362917165-526a968579e8?w=800",
-                desc: "Pusat pelaporan penyakit menular, TBC, Hipertensi, dan Surveilans.",
-                apps: []
-            },
-            lintas: {
-                title: "Lintas Kluster",
-                color: "from-orange-500 to-amber-400",
-                heroImg: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800",
-                desc: "Jadwal kegiatan promkes, Germas, UKS, dan penyuluhan lingkungan hidup.",
-                apps: []
-            },
-            inovasi: {
-                title: "Inovasi Puskesmas",
-                color: "from-yellow-500 to-orange-400",
-                heroImg: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800",
-                desc: "Galeri pameran inovasi layanan publik, pendaftaran online, dan ide baru.",
-                apps: []
-            }
+            logoUrl: "https://images.unsplash.com/photo-1584515933487-779824d29309?w=200",
+            activeTheme: "theme-rainbow",
+            kluster1: { title: "Kluster 1: Manajemen", color: "from-blue-500 to-cyan-400", heroImg: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800", desc: "Pusat berkas manajemen, perencanaan, lokmin bulanan, dan laporan keuangan BOK.", apps: [] },
+            kluster2: { title: "Kluster 2: Ibu & Anak", color: "from-pink-500 to-rose-400", heroImg: "https://images.unsplash.com/photo-1519689680058-324335c77eba?w=800", desc: "Pusat aplikasi registrasi KIA, pemantauan stunting, dan jadwal imunisasi.", apps: [] },
+            kluster3: { title: "Kluster 3: Dewasa & Lansia", color: "from-emerald-500 to-teal-400", heroImg: "https://images.unsplash.com/photo-1511895426328-dc8714191300?w=800", desc: "Wadah pendataan usia produktif, posbindu, dan penyakit tidak menular.", apps: [] },
+            kluster4: { title: "Kluster 4: P2P", color: "from-purple-500 to-indigo-400", heroImg: "https://images.unsplash.com/photo-1584362917165-526a968579e8?w=800", desc: "Pusat pelaporan penyakit menular, TBC, Hipertensi, dan Surveilans.", apps: [] },
+            lintas: { title: "Lintas Kluster", color: "from-orange-500 to-amber-400", heroImg: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800", desc: "Jadwal kegiatan promkes, Germas, UKS, dan penyuluhan lingkungan.", apps: [] },
+            inovasi: { title: "Inovasi Puskesmas", color: "from-yellow-500 to-orange-400", heroImg: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800", desc: "Galeri pameran inovasi layanan publik dan antrean online.", apps: [] }
         };
 
-        // State Aplikasi
         let db = defaultData;
         let currentKluster = 'kluster1';
         let isAdmin = false;
         const ADMIN_PASS = 'admin123';
 
-        // ==========================================
-        // 3. LISTEN REALTIME CHANGES
-        // ==========================================
         document.addEventListener('DOMContentLoaded', () => {
+            loadThemeSetting();
             renderTabs();
             renderDashboard();
 
             if (isFirebaseConnected) {
-                // Mendengarkan perubahan data secara REALTIME dari Cloud Database
-                database.ref('puskesmas_db').on('value', (snapshot) => {
+                database.ref('puskesmas_db_v2').on('value', (snapshot) => {
                     const data = snapshot.val();
-                    if (data) {
-                        db = data;
-                    } else {
-                        // Jika DB Cloud masih kosong, kirim data default pertama kali
-                        database.ref('puskesmas_db').set(defaultData);
-                    }
+                    if (data) db = data;
+                    if (db.logoUrl) document.getElementById('main-logo').src = db.logoUrl;
+                    if (db.activeTheme) changeTheme(db.activeTheme, false);
                     renderTabs();
                     renderDashboard();
                 });
             } else {
-                // Fallback LocalStorage jika Firebase belum dikonfigurasi
-                document.getElementById('sync-status').innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-500"></span> Local Mode`;
-                document.getElementById('sync-status').className = "px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700 flex items-center gap-1";
-                const savedData = localStorage.getItem('puskesmas_hub_db');
+                const savedData = localStorage.getItem('puskesmas_hub_db_v2');
                 if (savedData) db = JSON.parse(savedData);
+                if (db.logoUrl) document.getElementById('main-logo').src = db.logoUrl;
+                if (db.activeTheme) changeTheme(db.activeTheme, false);
                 renderTabs();
                 renderDashboard();
             }
@@ -299,26 +259,79 @@
 
         function saveToCloud() {
             if (isFirebaseConnected) {
-                database.ref('puskesmas_db').set(db);
+                database.ref('puskesmas_db_v2').set(db);
             } else {
-                localStorage.setItem('puskesmas_hub_db', JSON.stringify(db));
+                localStorage.setItem('puskesmas_hub_db_v2', JSON.stringify(db));
             }
         }
 
-        // ==========================================
-        // 4. RENDER UI
-        // ==========================================
+        // TEMA SWITCHER (>10 TEMA)
+        function changeTheme(themeClass, isSave = true) {
+            document.body.className = `${themeClass} min-h-screen relative overflow-x-hidden`;
+            document.getElementById('theme-selector').value = themeClass;
+            db.activeTheme = themeClass;
+            if (isSave) saveToCloud();
+        }
+
+        function loadThemeSetting() {
+            const currentTheme = db.activeTheme || 'theme-rainbow';
+            changeTheme(currentTheme, false);
+        }
+
+        // UNGGAH LOGO LANGSUNG
+        function triggerLogoUpload() {
+            if (!isAdmin) {
+                Swal.fire({ icon: 'info', title: 'Fitur Admin', text: 'Silakan Login Admin terlebih dahulu untuk mengganti logo.' });
+                return;
+            }
+            document.getElementById('logo-file-input').click();
+        }
+
+        function uploadLogoDirectly(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const base64Image = e.target.result;
+                document.getElementById('main-logo').src = base64Image;
+                db.logoUrl = base64Image;
+                saveToCloud();
+                Swal.fire({ icon: 'success', title: 'Logo Diperbarui!', toast: true, position: 'top-end', timer: 1500, showConfirmButton: false });
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // UNGGAH GAMBAR SAMPUL APLIKASI LANGSUNG (BASE64)
+        function convertImageToBase64(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const base64String = e.target.result;
+                document.getElementById('app-image-base64').value = base64String;
+                
+                // Tampilkan pratinjau
+                document.getElementById('image-preview').src = base64String;
+                document.getElementById('image-preview-container').classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // RENDER TABS & DASHBOARD
         function renderTabs() {
             const container = document.getElementById('cluster-tabs');
             container.innerHTML = '';
             
-            Object.keys(db).forEach(key => {
+            const keys = ['kluster1', 'kluster2', 'kluster3', 'kluster4', 'lintas', 'inovasi'];
+            keys.forEach(key => {
+                if (!db[key]) return;
                 const isActive = currentKluster === key;
                 const btn = document.createElement('button');
                 btn.className = `flex-shrink-0 px-6 py-2.5 rounded-full text-sm font-bold transition-all duration-300 ${
                     isActive 
                     ? `bg-gradient-to-r ${db[key].color} text-white shadow-lg transform scale-105`
-                    : `glass-panel text-slate-600 hover:bg-white`
+                    : `glass-panel hover:bg-white/80`
                 }`;
                 btn.innerText = db[key].title.split(':')[0] || db[key].title;
                 btn.onclick = () => {
@@ -333,11 +346,10 @@
         function renderDashboard() {
             const data = db[currentKluster] || defaultData[currentKluster];
             
-            // Hero
             const hero = document.getElementById('cluster-hero');
             hero.innerHTML = `
                 <div class="absolute inset-0 z-0">
-                    <div class="absolute inset-0 bg-gradient-to-r ${data.color} opacity-90 mix-blend-multiply"></div>
+                    <div class="absolute inset-0 bg-gradient-to-r ${data.color} opacity-85 mix-blend-multiply"></div>
                     <img src="${data.heroImg}" alt="Banner" class="w-full h-full object-cover">
                 </div>
                 <div class="relative z-10 w-full text-white">
@@ -348,7 +360,6 @@
 
             document.getElementById('btn-add-app').style.display = isAdmin ? 'flex' : 'none';
 
-            // Cards Grid
             const grid = document.getElementById('apps-grid');
             grid.innerHTML = '';
 
@@ -357,9 +368,9 @@
             if (appsList.length === 0) {
                 grid.innerHTML = `
                     <div class="col-span-full glass-panel rounded-2xl p-10 text-center flex flex-col items-center justify-center">
-                        <i class="fa-solid fa-folder-open text-4xl text-slate-300 mb-3"></i>
-                        <h3 class="text-lg font-bold text-slate-700">Belum Ada Tautan di Kluster Ini</h3>
-                        <p class="text-sm text-slate-500 mt-1">Login sebagai Admin untuk menambah tautan baru secara realtime.</p>
+                        <i class="fa-solid fa-folder-open text-4xl mb-3 opacity-40"></i>
+                        <h3 class="text-lg font-bold">Belum Ada Tautan di Kluster Ini</h3>
+                        <p class="text-sm opacity-70 mt-1">Login Admin untuk mengunggah foto dan menambah tautan secara realtime.</p>
                     </div>
                 `;
                 return;
@@ -369,18 +380,14 @@
                 const imageSrc = app.img ? app.img : `https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=500`;
                 
                 const card = document.createElement('div');
-                card.className = "card-app bg-white/80 backdrop-blur-md rounded-2xl overflow-hidden border border-white flex flex-col h-full relative group";
+                card.className = "card-app glass-panel rounded-2xl overflow-hidden flex flex-col h-full relative group border border-white/40";
                 
                 let adminControls = '';
                 if (isAdmin) {
                     adminControls = `
                         <div class="absolute top-3 right-3 z-20 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button onclick="editApp('${app.id}')" class="w-8 h-8 rounded-full bg-white text-blue-600 shadow-md flex items-center justify-center hover:bg-blue-50 transition-colors" title="Edit">
-                                <i class="fa-solid fa-pen text-xs"></i>
-                            </button>
-                            <button onclick="deleteApp('${app.id}')" class="w-8 h-8 rounded-full bg-white text-rose-600 shadow-md flex items-center justify-center hover:bg-rose-50 transition-colors" title="Hapus">
-                                <i class="fa-solid fa-trash text-xs"></i>
-                            </button>
+                            <button onclick="editApp('${app.id}')" class="w-8 h-8 rounded-full bg-white text-blue-600 shadow-md flex items-center justify-center hover:bg-blue-50" title="Edit"><i class="fa-solid fa-pen text-xs"></i></button>
+                            <button onclick="deleteApp('${app.id}')" class="w-8 h-8 rounded-full bg-white text-rose-600 shadow-md flex items-center justify-center hover:bg-rose-50" title="Hapus"><i class="fa-solid fa-trash text-xs"></i></button>
                         </div>
                     `;
                 }
@@ -393,8 +400,8 @@
                         <h3 class="absolute bottom-3 left-4 right-4 z-20 text-white font-bold text-lg leading-tight truncate">${app.name}</h3>
                     </div>
                     <div class="p-4 flex flex-col flex-grow">
-                        <p class="text-xs text-slate-500 font-medium mb-4 flex-grow line-clamp-2">${app.desc || ''}</p>
-                        <a href="${app.url}" target="_blank" class="w-full text-center py-2.5 rounded-xl text-sm font-bold bg-slate-100 text-slate-700 group-hover:bg-brand-500 group-hover:text-white transition-colors">
+                        <p class="text-xs font-medium mb-4 opacity-80 flex-grow line-clamp-2">${app.desc || ''}</p>
+                        <a href="${app.url}" target="_blank" class="w-full text-center py-2.5 rounded-xl text-sm font-bold bg-white/80 text-slate-800 hover:bg-brand-500 hover:text-white transition-colors border border-white/50 shadow-sm">
                             Buka Tautan <i class="fa-solid fa-arrow-right ml-1 text-[10px]"></i>
                         </a>
                     </div>
@@ -403,9 +410,7 @@
             });
         }
 
-        // ==========================================
-        // 5. AUTH & CRUD ACTIONS
-        // ==========================================
+        // AUTH & CRUD
         function toggleAdmin() {
             if (isAdmin) {
                 isAdmin = false;
@@ -415,7 +420,7 @@
             } else {
                 Swal.fire({
                     title: 'Akses Admin',
-                    text: 'Masukkan Kata Sandi Admin:',
+                    text: 'Masukkan Kata Sandi Admin (Default: admin123):',
                     input: 'password',
                     showCancelButton: true,
                     confirmButtonText: 'Masuk',
@@ -447,7 +452,9 @@
         function openAppModal() {
             document.getElementById('modal-title').innerText = "Tambah Tautan Baru";
             document.getElementById('app-id').value = '';
+            document.getElementById('app-image-base64').value = '';
             document.getElementById('app-form').reset();
+            document.getElementById('image-preview-container').classList.add('hidden');
             document.getElementById('app-modal').classList.remove('hidden');
         }
 
@@ -460,7 +467,7 @@
             const id = document.getElementById('app-id').value;
             const name = document.getElementById('app-name').value;
             const url = document.getElementById('app-url').value;
-            const img = document.getElementById('app-image').value;
+            const imgBase64 = document.getElementById('app-image-base64').value;
             const desc = document.getElementById('app-desc').value;
 
             if (!db[currentKluster].apps) db[currentKluster].apps = [];
@@ -468,16 +475,30 @@
             if (id) {
                 const index = db[currentKluster].apps.findIndex(a => a.id === id);
                 if (index > -1) {
-                    db[currentKluster].apps[index] = { id, name, url, img, desc };
+                    const oldImg = db[currentKluster].apps[index].img;
+                    db[currentKluster].apps[index] = { 
+                        id, 
+                        name, 
+                        url, 
+                        img: imgBase64 || oldImg, 
+                        desc 
+                    };
                 }
             } else {
                 const newId = Date.now().toString();
-                db[currentKluster].apps.push({ id: newId, name, url, img, desc });
+                db[currentKluster].apps.push({ 
+                    id: newId, 
+                    name, 
+                    url, 
+                    img: imgBase64 || '', 
+                    desc 
+                });
             }
 
             saveToCloud();
             closeAppModal();
-            Swal.fire({ icon: 'success', title: 'Disimpan secara Realtime!', showConfirmButton: false, timer: 1500, toast: true, position: 'top-end' });
+            renderDashboard();
+            Swal.fire({ icon: 'success', title: 'Data & Foto Disimpan!', showConfirmButton: false, timer: 1500, toast: true, position: 'top-end' });
         }
 
         function editApp(id) {
@@ -488,16 +509,23 @@
             document.getElementById('app-id').value = app.id;
             document.getElementById('app-name').value = app.name;
             document.getElementById('app-url').value = app.url;
-            document.getElementById('app-image').value = app.img || '';
+            document.getElementById('app-image-base64').value = app.img || '';
             document.getElementById('app-desc').value = app.desc || '';
             
+            if (app.img) {
+                document.getElementById('image-preview').src = app.img;
+                document.getElementById('image-preview-container').classList.remove('hidden');
+            } else {
+                document.getElementById('image-preview-container').classList.add('hidden');
+            }
+
             document.getElementById('app-modal').classList.remove('hidden');
         }
 
         function deleteApp(id) {
             Swal.fire({
                 title: 'Hapus Tautan Ini?',
-                text: "Perubahan akan langsung terhapus di seluruh perangkat pengguna!",
+                text: "Foto dan data akan terhapus di seluruh perangkat!",
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#e11d48',
@@ -506,7 +534,8 @@
                 if (result.isConfirmed) {
                     db[currentKluster].apps = db[currentKluster].apps.filter(a => a.id !== id);
                     saveToCloud();
-                    Swal.fire({ icon: 'success', title: 'Terhapus Realtime', showConfirmButton: false, timer: 1500, toast: true, position: 'top-end' });
+                    renderDashboard();
+                    Swal.fire({ icon: 'success', title: 'Terhapus!', showConfirmButton: false, timer: 1500, toast: true, position: 'top-end' });
                 }
             });
         }
