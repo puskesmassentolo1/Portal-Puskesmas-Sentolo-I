@@ -6,7 +6,7 @@
     <title>Portal Aplikasi Puskesmas</title>
     
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -69,38 +69,45 @@
 </head>
 <body class="theme-rainbow min-h-screen relative overflow-x-hidden">
 
-    <!-- HEADER NAVBAR -->
-    <header class="glass-panel sticky top-4 z-50 mx-4 md:mx-8 mt-4 rounded-3xl px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
-        <div class="flex items-center gap-4 w-full md:w-auto">
-            <!-- Logo Puskesmas -->
-            <div class="relative group w-14 h-14 rounded-2xl bg-white p-1 shadow-md flex-shrink-0 cursor-pointer overflow-hidden" title="Klik untuk ganti logo Puskesmas" onclick="triggerLogoUpload()">
-                <img id="main-logo" src="https://images.unsplash.com/photo-1584515933487-779824d29309?w=200" alt="Logo" class="w-full h-full object-cover rounded-xl">
-                <div class="absolute inset-0 bg-black/50 hidden group-hover:flex items-center justify-center text-white text-xs font-bold rounded-xl">
-                    <i class="fa-solid fa-camera"></i>
+    <!-- HEADER NAVBAR (LEBIH BESAR, SUPPORT FOTO BACKGROUND & CONTROL MINIMALIS) -->
+    <header id="main-header" class="glass-panel sticky top-4 z-50 mx-4 md:mx-8 mt-4 rounded-3xl p-6 md:p-8 flex flex-col md:flex-row justify-between items-center gap-6 relative overflow-hidden transition-all duration-300">
+        <!-- Overlay Sampul Header (Foto Tambahan) -->
+        <div id="header-bg-overlay" class="absolute inset-0 z-0 bg-cover bg-center opacity-20 pointer-events-none transition-all duration-500 hidden"></div>
+        <div class="absolute inset-0 bg-gradient-to-r from-slate-900/10 via-transparent to-slate-900/10 z-0 pointer-events-none"></div>
+
+        <div class="relative z-10 flex flex-col md:flex-row items-center md:items-center gap-5 w-full md:w-auto text-center md:text-left">
+            <!-- Foto / Logo Puskesmas Utama (Ukuran Diperbesar) -->
+            <div class="relative group w-20 h-20 md:w-24 md:h-24 rounded-2xl bg-white/90 p-1.5 shadow-xl flex-shrink-0 cursor-pointer overflow-hidden border-2 border-white/60 hover:scale-105 transition-transform duration-300" title="Klik untuk ganti foto logo" onclick="triggerLogoUpload()">
+                <img id="main-logo" src="https://images.unsplash.com/photo-1584515933487-779824d29309?w=300" alt="Logo" class="w-full h-full object-cover rounded-xl">
+                <div class="absolute inset-0 bg-black/60 hidden group-hover:flex flex-col items-center justify-center text-white text-xs font-bold rounded-xl gap-1">
+                    <i class="fa-solid fa-camera text-base"></i>
+                    <span class="text-[9px]">Ganti Foto</span>
                 </div>
                 <input type="file" id="logo-file-input" class="hidden" accept="image/*" onchange="uploadLogoDirectly(event)">
             </div>
 
-            <div>
-                <div class="flex items-center gap-2">
-                    <h1 id="app-title-text" class="text-xl md:text-2xl font-extrabold tracking-tight">Portal Puskesmas</h1>
-                    <button id="btn-edit-header" onclick="openHeaderModal()" class="hidden text-slate-500 hover:text-brand-500 text-xs p-1" title="Edit Teks Header">
+            <!-- Judul & Sub-judul Portal -->
+            <div class="flex flex-col justify-center">
+                <div class="flex flex-wrap items-center justify-center md:justify-start gap-2.5">
+                    <h1 id="app-title-text" class="text-2xl md:text-3xl font-black tracking-tight drop-shadow-sm">Portal Puskesmas</h1>
+                    <button id="btn-edit-header" onclick="openHeaderModal()" class="hidden text-slate-400 hover:text-white bg-black/20 hover:bg-black/40 p-1.5 rounded-lg text-xs transition-colors" title="Edit Teks Header & Sampul">
                         <i class="fa-solid fa-pen"></i>
                     </button>
-                    <span id="sync-status" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700 flex items-center gap-1">
+                    <span id="sync-status" class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30 flex items-center gap-1.5 backdrop-blur-md">
                         <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Realtime Sync
                     </span>
                 </div>
-                <p id="app-subtitle-text" class="text-xs md:text-sm font-medium opacity-80">Wadah Aplikasi & Data Terpadu Seluruh Kluster</p>
+                <p id="app-subtitle-text" class="text-xs md:text-sm font-medium opacity-90 mt-1 drop-shadow-sm">Wadah Aplikasi & Data Terpadu Seluruh Kluster</p>
             </div>
         </div>
         
-        <div class="w-full md:w-auto flex flex-wrap items-center justify-end gap-3">
-            <!-- SELECTOR TEMA -->
-            <div class="flex items-center gap-2 glass-panel px-3 py-1.5 rounded-full">
-                <i class="fa-solid fa-palette text-xs"></i>
-                <select id="theme-selector" onchange="changeTheme(this.value)" class="bg-transparent text-xs font-bold focus:outline-none cursor-pointer">
-                    <option value="theme-rainbow" class="text-slate-800">1. Pelangi Pastel (Default)</option>
+        <!-- CONTROL BARIS ATAS (MINIMALIS & TERTATA) -->
+        <div class="relative z-10 w-full md:w-auto flex items-center justify-center md:justify-end gap-2 bg-black/10 backdrop-blur-md p-1.5 rounded-full border border-white/20">
+            <!-- SELECTOR TEMA (MINIMALIS) -->
+            <div class="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs">
+                <i class="fa-solid fa-palette text-xs opacity-75"></i>
+                <select id="theme-selector" onchange="changeTheme(this.value)" class="bg-transparent font-semibold focus:outline-none cursor-pointer text-xs">
+                    <option value="theme-rainbow" class="text-slate-800">1. Pelangi Pastel</option>
                     <option value="theme-ocean" class="text-slate-800">2. Ocean Blue</option>
                     <option value="theme-emerald" class="text-slate-800">3. Kemenkes Emerald</option>
                     <option value="theme-sunset" class="text-slate-800">4. Sunset Glow</option>
@@ -115,9 +122,12 @@
                 </select>
             </div>
 
-            <!-- TOMBOL LOGIN ADMIN -->
-            <button id="btn-admin-auth" onclick="toggleAdmin()" class="glass-panel hover:bg-white/90 px-5 py-2.5 rounded-full text-sm font-bold text-brand-600 transition-all shadow-sm flex items-center gap-2">
-                <i class="fa-solid fa-user-lock"></i> <span>Login Admin</span>
+            <div class="w-[1px] h-4 bg-white/30"></div>
+
+            <!-- TOMBOL LOGIN ADMIN (MINIMALIS & ELEGAN) -->
+            <button id="btn-admin-auth" onclick="toggleAdmin()" class="hover:bg-white/20 active:scale-95 px-3 py-1 rounded-full text-xs font-semibold transition-all flex items-center gap-1.5">
+                <i class="fa-solid fa-user-lock text-xs"></i>
+                <span>Admin</span>
             </button>
         </div>
     </header>
@@ -142,18 +152,19 @@
         <div id="apps-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
     </main>
 
-    <!-- MODAL EDIT PORTAL HEADER & TEKS UMUM -->
+    <!-- MODAL EDIT PORTAL HEADER & FOTO SAMPUL -->
     <div id="header-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onclick="closeHeaderModal()"></div>
         <div class="glass-panel bg-white/95 text-slate-800 w-full max-w-lg rounded-3xl p-6 md:p-8 relative z-10 shadow-2xl">
             <div class="flex justify-between items-center mb-6">
-                <h3 class="text-xl font-bold text-slate-800">Edit Judul & Teks Aplikasi</h3>
+                <h3 class="text-xl font-bold text-slate-800">Edit Judul & Foto Sampul Header</h3>
                 <button onclick="closeHeaderModal()" class="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 hover:bg-rose-100 text-slate-500 hover:text-rose-600 transition-colors">
                     <i class="fa-solid fa-times"></i>
                 </button>
             </div>
             
             <form onsubmit="saveHeaderInfo(event)" class="flex flex-col gap-4">
+                <input type="hidden" id="header-bg-base64">
                 <div>
                     <label class="block text-xs font-bold text-slate-600 mb-1">Judul Utama Portal</label>
                     <input type="text" id="input-app-name" required class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 focus:outline-none text-sm">
@@ -166,8 +177,12 @@
                     <label class="block text-xs font-bold text-slate-600 mb-1">Judul Bagian Daftar Aplikasi</label>
                     <input type="text" id="input-grid-title" required class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 focus:outline-none text-sm">
                 </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Foto Latar Belakang Header (Opsional)</label>
+                    <input type="file" id="header-file-input" accept="image/*" onchange="convertHeaderBgToBase64(event)" class="w-full text-xs text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-brand-50 file:text-brand-600 hover:file:bg-brand-100 border border-slate-200 rounded-xl cursor-pointer bg-white">
+                </div>
                 <button type="submit" class="mt-2 w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 rounded-xl shadow-lg transition-colors">
-                    Simpan Perubahan Teks
+                    Simpan Perubahan Header
                 </button>
             </form>
         </div>
@@ -282,7 +297,8 @@
         }
 
         const defaultData = {
-            logoUrl: "https://images.unsplash.com/photo-1584515933487-779824d29309?w=200",
+            logoUrl: "https://images.unsplash.com/photo-1584515933487-779824d29309?w=300",
+            headerBgUrl: "",
             appName: "Portal Puskesmas",
             appSubtitle: "Wadah Aplikasi & Data Terpadu Seluruh Kluster",
             gridTitle: "Daftar Aplikasi & File",
@@ -351,6 +367,14 @@
             document.getElementById('app-subtitle-text').innerText = db.appSubtitle || "Wadah Aplikasi & Data Terpadu Seluruh Kluster";
             document.getElementById('grid-title').innerText = db.gridTitle || "Daftar Aplikasi & File";
             document.getElementById('btn-edit-header').style.display = isAdmin ? 'inline-block' : 'none';
+
+            const bgOverlay = document.getElementById('header-bg-overlay');
+            if (db.headerBgUrl) {
+                bgOverlay.style.backgroundImage = `url('${db.headerBgUrl}')`;
+                bgOverlay.classList.remove('hidden');
+            } else {
+                bgOverlay.classList.add('hidden');
+            }
         }
 
         function changeTheme(themeClass, isSave = true) {
@@ -368,7 +392,7 @@
 
         function triggerLogoUpload() {
             if (!isAdmin) {
-                Swal.fire({ icon: 'info', title: 'Fitur Admin', text: 'Silakan Login Admin terlebih dahulu untuk mengganti logo.' });
+                Swal.fire({ icon: 'info', title: 'Fitur Admin', text: 'Silakan Login Admin terlebih dahulu untuk mengganti foto.' });
                 return;
             }
             document.getElementById('logo-file-input').click();
@@ -378,24 +402,34 @@
             const file = event.target.files[0];
             if (!file) return;
 
-            compressImage(file, 200, 200, 0.8, (base64Image) => {
+            compressImage(file, 300, 300, 0.85, (base64Image) => {
                 document.getElementById('main-logo').src = base64Image;
                 db.logoUrl = base64Image;
                 saveToCloud();
-                Swal.fire({ icon: 'success', title: 'Logo Diperbarui!', toast: true, position: 'top-end', timer: 1500, showConfirmButton: false });
+                Swal.fire({ icon: 'success', title: 'Foto Logo Diperbarui!', toast: true, position: 'top-end', timer: 1500, showConfirmButton: false });
             });
         }
 
-        // CONTROL HEADER TEXTS
+        // CONTROL HEADER TEXTS & FOTO BACKGROUND HEADER
         function openHeaderModal() {
             document.getElementById('input-app-name').value = db.appName || "Portal Puskesmas";
             document.getElementById('input-app-subtitle').value = db.appSubtitle || "Wadah Aplikasi & Data Terpadu Seluruh Kluster";
             document.getElementById('input-grid-title').value = db.gridTitle || "Daftar Aplikasi & File";
+            document.getElementById('header-bg-base64').value = db.headerBgUrl || '';
             document.getElementById('header-modal').classList.remove('hidden');
         }
 
         function closeHeaderModal() {
             document.getElementById('header-modal').classList.add('hidden');
+        }
+
+        function convertHeaderBgToBase64(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            compressImage(file, 1200, 400, 0.75, (base64String) => {
+                document.getElementById('header-bg-base64').value = base64String;
+            });
         }
 
         function saveHeaderInfo(e) {
@@ -404,10 +438,13 @@
             db.appSubtitle = document.getElementById('input-app-subtitle').value;
             db.gridTitle = document.getElementById('input-grid-title').value;
             
+            const headerBg = document.getElementById('header-bg-base64').value;
+            if (headerBg) db.headerBgUrl = headerBg;
+
             saveToCloud();
             renderHeaderTexts();
             closeHeaderModal();
-            Swal.fire({ icon: 'success', title: 'Teks Header Diperbarui!', toast: true, position: 'top-end', timer: 1500, showConfirmButton: false });
+            Swal.fire({ icon: 'success', title: 'Header Diperbarui!', toast: true, position: 'top-end', timer: 1500, showConfirmButton: false });
         }
 
         // CONTROL HERO BANNER & KLUSTER INFO
@@ -637,11 +674,11 @@
             const btn = document.getElementById('btn-admin-auth');
             if (!btn) return;
             if (isAdmin) {
-                btn.innerHTML = `<i class="fa-solid fa-unlock"></i> <span>Mode Admin</span>`;
-                btn.classList.replace('text-brand-600', 'text-rose-600');
+                btn.innerHTML = `<i class="fa-solid fa-unlock text-rose-400"></i> <span>Keluar Admin</span>`;
+                btn.className = "bg-rose-500/20 text-rose-300 hover:bg-rose-500/30 border border-rose-500/40 active:scale-95 px-3 py-1 rounded-full text-xs font-semibold transition-all flex items-center gap-1.5 backdrop-blur-md";
             } else {
-                btn.innerHTML = `<i class="fa-solid fa-user-lock"></i> <span>Login Admin</span>`;
-                btn.classList.replace('text-rose-600', 'text-brand-600');
+                btn.innerHTML = `<i class="fa-solid fa-user-lock text-xs"></i> <span>Admin</span>`;
+                btn.className = "hover:bg-white/20 active:scale-95 px-3 py-1 rounded-full text-xs font-semibold transition-all flex items-center gap-1.5";
             }
         }
 
